@@ -50,3 +50,5 @@ coverage/
 *.log
 *.bak
 *.tmp
+*.pdf
+test_pdf.py
