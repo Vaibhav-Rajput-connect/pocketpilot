@@ -91,6 +91,7 @@ export function useUploadStatement() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["categories"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
     },
   });
 }

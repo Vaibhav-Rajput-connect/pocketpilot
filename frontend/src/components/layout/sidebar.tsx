@@ -29,7 +29,7 @@ export function Sidebar({ className }: SidebarProps) {
     { href: "/dashboard/transactions", label: "Transactions", icon: Wallet },
     { href: "/dashboard/analytics", label: "Analytics", icon: TrendingUp, disabled: true },
     { href: "/dashboard/copilot", label: "AI Copilot", icon: BrainCircuit, disabled: true },
-    { href: "/dashboard/settings", label: "Settings", icon: Settings, disabled: true },
+    { href: "/dashboard/settings", label: "Settings", icon: Settings },
   ];
 
   return (

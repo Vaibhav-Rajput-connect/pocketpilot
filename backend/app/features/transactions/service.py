@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.features.transactions.models import Transaction, UploadSession
 from app.features.transactions.parsers import parse_file, detect_file_type
+from app.features.categorizer.engine import categorize_transaction
 
 
 async def upload_and_parse(
@@ -42,6 +43,14 @@ async def upload_and_parse(
         duplicates = 0
 
         for raw in raw_transactions:
+            # AI auto-categorization
+            category = categorize_transaction(
+                merchant=raw.merchant,
+                description=raw.description,
+                amount=raw.amount,
+                transaction_type=raw.transaction_type,
+            )
+
             txn = Transaction(
                 user_id=user_id,
                 date=raw.date,
@@ -49,7 +58,7 @@ async def upload_and_parse(
                 description=raw.description,
                 amount=raw.amount,
                 transaction_type=raw.transaction_type,
-                category="Uncategorized",
+                category=category,
                 source_file=filename,
                 raw_line=raw.raw_line,
                 hash=raw.hash,

@@ -12,6 +12,7 @@ from app.config import settings
 from app.features.auth.router import router as auth_router
 from app.features.users.router import router as users_router
 from app.features.transactions.router import router as transactions_router
+from app.features.analytics.router import router as analytics_router
 
 
 @asynccontextmanager
@@ -62,6 +63,7 @@ def create_app() -> FastAPI:
     application.include_router(auth_router, prefix="/api/v1")
     application.include_router(users_router, prefix="/api/v1")
     application.include_router(transactions_router, prefix="/api/v1")
+    application.include_router(analytics_router, prefix="/api/v1")
 
     return application
 
