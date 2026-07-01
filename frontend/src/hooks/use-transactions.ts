@@ -143,3 +143,19 @@ export function useCategories() {
     },
   });
 }
+
+export function useClearAll() {
+  const queryClient = useQueryClient();
+
+  return useMutation<{ deleted_count: number }, Error, void>({
+    mutationFn: async () => {
+      const { data } = await apiClient.delete("/transactions/all");
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
+    },
+  });
+}

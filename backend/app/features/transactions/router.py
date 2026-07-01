@@ -130,6 +130,15 @@ async def bulk_delete(
     )
 
 
+@router.delete("/all")
+async def delete_all_transactions(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    deleted = await txn_service.delete_all(db, current_user.id)
+    return {"deleted_count": deleted}
+
+
 @router.post(
     "/bulk-categorize",
     response_model=BulkActionResponse,

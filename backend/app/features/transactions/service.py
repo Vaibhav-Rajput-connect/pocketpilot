@@ -42,7 +42,17 @@ async def upload_and_parse(
         imported = 0
         duplicates = 0
 
+        # Pre-fetch existing hashes for this user to do in-memory deduplication
+        result = await db.execute(
+            select(Transaction.hash).where(Transaction.user_id == user_id)
+        )
+        existing_hashes = {row[0] for row in result.all()}
+
         for raw in raw_transactions:
+            if raw.hash in existing_hashes:
+                duplicates += 1
+                continue
+
             # AI auto-categorization
             category = categorize_transaction(
                 merchant=raw.merchant,
@@ -64,15 +74,12 @@ async def upload_and_parse(
                 hash=raw.hash,
             )
             db.add(txn)
-            try:
-                await db.flush()
-                imported += 1
-            except IntegrityError:
-                await db.rollback()
-                # Re-add the session since rollback cleared it
-                db.add(session)
-                await db.flush()
-                duplicates += 1
+            existing_hashes.add(raw.hash)
+            imported += 1
+
+        # Flush all valid transactions at once
+        if imported > 0:
+            await db.flush()
 
         session.imported_rows = imported
         session.duplicates_skipped = duplicates
@@ -174,6 +181,14 @@ async def bulk_delete(
         delete(Transaction).where(
             Transaction.user_id == user_id, Transaction.id.in_(ids)
         )
+    )
+    return result.rowcount  # type: ignore[return-value]
+
+
+async def delete_all(db: AsyncSession, user_id: uuid.UUID) -> int:
+    """Delete all transactions for a user."""
+    result = await db.execute(
+        delete(Transaction).where(Transaction.user_id == user_id)
     )
     return result.rowcount  # type: ignore[return-value]
 

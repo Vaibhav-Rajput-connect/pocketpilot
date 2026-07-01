@@ -38,27 +38,27 @@ class BaseParser(ABC):
 # ── Column name fuzzy matching ──
 
 DATE_PATTERNS = re.compile(
-    r"^(date|txn[\s_]?date|transaction[\s_]?date|value[\s_]?date|posting[\s_]?date)$",
+    r"^(date|txn[\s_]?date|transaction[\s_]?date|value[\s_]?date|posting[\s_]?date|date[\s_]?of[\s_]?transaction|txndate|val[\s_]?date|d/m/y)$",
     re.IGNORECASE,
 )
 DESC_PATTERNS = re.compile(
-    r"^(description|narration|particulars|details|remarks|transaction[\s_]?details|memo)$",
+    r"^(description|narration|particulars|details|remarks|transaction[\s_]?details|memo|desc|transaction[\s_]?remarks|chq/ref[\s_]?no\.|ref[\s_]?no)$",
     re.IGNORECASE,
 )
 DEBIT_PATTERNS = re.compile(
-    r"^(debit|withdrawal|dr|debit[\s_]?amount|withdrawals)$",
+    r"^(debit|withdrawal|dr|debit[\s_]?amount|withdrawals|paid[\s_]?out|money[\s_]?out|debits)$",
     re.IGNORECASE,
 )
 CREDIT_PATTERNS = re.compile(
-    r"^(credit|deposit|cr|credit[\s_]?amount|deposits)$",
+    r"^(credit|deposit|cr|credit[\s_]?amount|deposits|paid[\s_]?in|money[\s_]?in|credits)$",
     re.IGNORECASE,
 )
 AMOUNT_PATTERNS = re.compile(
-    r"^(amount|transaction[\s_]?amount|total|value)$",
+    r"^(amount|transaction[\s_]?amount|total|value|amt|txn[\s_]?amount|amount[\s_]?\(inr\)|amount[\s_]?\(\$\))$",
     re.IGNORECASE,
 )
 MERCHANT_PATTERNS = re.compile(
-    r"^(merchant|payee|vendor|beneficiary|paid[\s_]?to|receiver)$",
+    r"^(merchant|payee|vendor|beneficiary|paid[\s_]?to|receiver|to|from)$",
     re.IGNORECASE,
 )
 
@@ -104,9 +104,12 @@ def parse_date(value: str) -> Optional[date]:
         "%d-%b-%Y",
         "%d %b %Y",
         "%d-%B-%Y",
+        "%d %b, %Y",
         "%d %B %Y",
         "%m-%d-%Y",
         "%Y-%m-%dT%H:%M:%S",
+        "%d/%m/%y",
+        "%d-%m-%y",
     ]
     for fmt in formats:
         try:

@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import {
   useTransactions,
   useCategories,
+  useClearAll,
   type Transaction,
   type TransactionFilters,
 } from "@/hooks/use-transactions";
@@ -19,6 +20,7 @@ import {
   ChevronRight,
   Loader2,
   Wallet,
+  Trash2,
 } from "lucide-react";
 
 export default function TransactionsPage() {
@@ -35,6 +37,7 @@ export default function TransactionsPage() {
 
   const { data, isLoading } = useTransactions(filters);
   const { data: categories } = useCategories();
+  const clearAllMutation = useClearAll();
 
   // ── Handlers ──
   const updateFilter = (update: Partial<TransactionFilters>) => {
@@ -72,6 +75,12 @@ export default function TransactionsPage() {
     setSelectedIds(allSelected ? [] : allIds);
   }, [data, selectedIds]);
 
+  const handleClearAll = () => {
+    if (confirm("Are you sure you want to delete ALL transactions? This cannot be undone.")) {
+      clearAllMutation.mutate();
+    }
+  };
+
   return (
     <motion.div
       className="space-y-6"
@@ -91,6 +100,21 @@ export default function TransactionsPage() {
           <p className="text-xs text-[#94A3B8]">
             Upload statements and manage your transactions
           </p>
+        </div>
+        
+        <div className="ml-auto">
+          <button
+            onClick={handleClearAll}
+            disabled={clearAllMutation.isPending || (data?.total || 0) === 0}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {clearAllMutation.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Trash2 className="h-4 w-4" />
+            )}
+            Clear All
+          </button>
         </div>
       </div>
 
