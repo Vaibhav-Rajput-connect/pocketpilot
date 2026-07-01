@@ -613,7 +613,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Footer ── */}
-      <footer className="relative z-10 max-w-7xl mx-auto w-full px-6 lg:px-12 py-8 border-t border-[#1E293B] flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-[#94A3B8]">
+      <footer className="relative z-10 max-w-7xl mx-auto w-full px-6 lg:px-12 py-8 border-t border-[#1E293B] flex flex-col sm:flex-row justify-center items-center gap-4 text-xs text-[#94A3B8]">
         <p>© 2026 PocketPilot Technologies Inc. All rights reserved.</p>
       </footer>
     </div>
