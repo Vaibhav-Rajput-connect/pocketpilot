@@ -46,6 +46,12 @@ apiClient.interceptors.response.use(
     };
 
     if (error.response?.status === 401 && !originalRequest._retry) {
+      // Don't intercept 401s for login/signup/refresh endpoints
+      const url = originalRequest.url || "";
+      if (url.includes("/auth/login") || url.includes("/auth/signup") || url.includes("/auth/refresh")) {
+        return Promise.reject(error);
+      }
+
       if (isRefreshing) {
         return new Promise<string>((resolve, reject) => {
           failedQueue.push({ resolve, reject });

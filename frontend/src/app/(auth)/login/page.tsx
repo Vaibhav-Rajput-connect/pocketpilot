@@ -39,12 +39,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-background flex flex-col justify-center items-center px-4 overflow-hidden">
+    <div className="relative min-h-screen w-full bg-background flex flex-col justify-center items-center px-4 overflow-hidden">
       {/* Background blobs */}
       <div className="absolute -top-[20%] -left-[10%] h-[60%] w-[50%] rounded-full bg-emerald-700/10 dark:bg-emerald-900/10 blur-[100px] pointer-events-none" />
       <div className="absolute -bottom-[20%] -right-[10%] h-[60%] w-[50%] rounded-full bg-teal-500/10 dark:bg-teal-900/10 blur-[100px] pointer-events-none" />
 
-      <Link href="/" className="absolute top-6 left-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+      <Link href="/" style={{ position: 'absolute', top: '1.5rem', left: '1.5rem', zIndex: 50 }} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
         <ArrowLeft className="h-4 w-4" /> Back Home
       </Link>
 

@@ -26,7 +26,7 @@ export function Sidebar({ className }: SidebarProps) {
 
   const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/dashboard/transactions", label: "Transactions", icon: Wallet, disabled: true },
+    { href: "/dashboard/transactions", label: "Transactions", icon: Wallet },
     { href: "/dashboard/analytics", label: "Analytics", icon: TrendingUp, disabled: true },
     { href: "/dashboard/copilot", label: "AI Copilot", icon: BrainCircuit, disabled: true },
     { href: "/dashboard/settings", label: "Settings", icon: Settings, disabled: true },
@@ -41,7 +41,7 @@ export function Sidebar({ className }: SidebarProps) {
     >
       <div className="flex items-center gap-2 px-2 py-4">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20">
-          <Sparkles className="h-5 w-5 text-teal-500 animate-pulse" />
+          <Sparkles className="h-5 w-5 animate-pulse text-white" />
         </div>
         <div>
           <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-teal-500 to-teal-300 bg-clip-text text-transparent">

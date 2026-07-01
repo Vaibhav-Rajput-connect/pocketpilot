@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useRef } from "react";
+import { useAuth } from "@/providers/auth-provider";
 
 /* ── Animated Dot Grid Background ── */
 function AnimatedDotGrid() {
@@ -258,6 +259,9 @@ const features = [
 ];
 
 export default function LandingPage() {
+  const { user, isLoading } = useAuth();
+  const isLoggedIn = !isLoading && user !== null;
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#020617] text-[#F8FAFC] flex flex-col">
       {/* ── Background Layers ── */}
@@ -287,21 +291,35 @@ export default function LandingPage() {
         </div>
 
         <div className="flex items-center gap-4">
-          <Link
-            href="/login"
-            className="text-sm font-semibold text-[#94A3B8] hover:text-[#F8FAFC] transition-colors"
-          >
-            Sign In
-          </Link>
-          <Link
-            href="/signup"
-            className={cn(
-              buttonVariants({ variant: "default" }),
-              "bg-emerald-500 hover:bg-emerald-400 text-[#020617] font-bold rounded-full px-6"
-            )}
-          >
-            Sign Up
-          </Link>
+          {isLoggedIn ? (
+            <Link
+              href="/dashboard"
+              className={cn(
+                buttonVariants({ variant: "default" }),
+                "bg-emerald-500 hover:bg-emerald-400 text-[#020617] font-bold rounded-full px-6"
+              )}
+            >
+              Go to Dashboard
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="text-sm font-semibold text-[#94A3B8] hover:text-[#F8FAFC] transition-colors"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/signup"
+                className={cn(
+                  buttonVariants({ variant: "default" }),
+                  "bg-emerald-500 hover:bg-emerald-400 text-[#020617] font-bold rounded-full px-6"
+                )}
+              >
+                Sign Up
+              </Link>
+            </>
+          )}
         </div>
       </header>
 
@@ -364,25 +382,40 @@ export default function LandingPage() {
           transition={{ duration: 0.6, delay: 0.6 }}
           className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
         >
-          <Link
-            href="/signup"
-            className={cn(
-              buttonVariants({ variant: "default", size: "lg" }),
-              "bg-emerald-500 hover:bg-emerald-400 text-[#020617] font-bold rounded-full px-8 py-3 h-auto shadow-xl shadow-emerald-500/20 group text-base"
-            )}
-          >
-            Create Free Account
-            <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-          </Link>
-          <Link
-            href="/login"
-            className={cn(
-              buttonVariants({ variant: "outline", size: "lg" }),
-              "border-[#1E293B] text-[#F8FAFC] hover:bg-[#0F172A] rounded-full px-8 py-3 h-auto font-semibold text-base"
-            )}
-          >
-            Sign In
-          </Link>
+          {isLoggedIn ? (
+            <Link
+              href="/dashboard"
+              className={cn(
+                buttonVariants({ variant: "default", size: "lg" }),
+                "bg-emerald-500 hover:bg-emerald-400 text-[#020617] font-bold rounded-full px-8 py-3 h-auto shadow-xl shadow-emerald-500/20 group text-base"
+              )}
+            >
+              Go to Dashboard
+              <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/signup"
+                className={cn(
+                  buttonVariants({ variant: "default", size: "lg" }),
+                  "bg-emerald-500 hover:bg-emerald-400 text-[#020617] font-bold rounded-full px-8 py-3 h-auto shadow-xl shadow-emerald-500/20 group text-base"
+                )}
+              >
+                Create Free Account
+                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+              <Link
+                href="/login"
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "lg" }),
+                  "border-[#1E293B] text-[#F8FAFC] hover:bg-[#0F172A] rounded-full px-8 py-3 h-auto font-semibold text-base"
+                )}
+              >
+                Sign In
+              </Link>
+            </>
+          )}
         </motion.div>
 
         {/* ── Dashboard Preview Card ── */}
@@ -551,16 +584,29 @@ export default function LandingPage() {
               Join thousands of users who are already taking control of their money with PocketPilot.
             </p>
             <div className="mt-8">
-              <Link
-                href="/signup"
-                className={cn(
-                  buttonVariants({ variant: "default", size: "lg" }),
-                  "bg-emerald-500 hover:bg-emerald-400 text-[#020617] font-bold rounded-full px-10 py-3 h-auto shadow-xl shadow-emerald-500/20 group text-base"
-                )}
-              >
-                Get Started for Free
-                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
+              {isLoggedIn ? (
+                <Link
+                  href="/dashboard"
+                  className={cn(
+                    buttonVariants({ variant: "default", size: "lg" }),
+                    "bg-emerald-500 hover:bg-emerald-400 text-[#020617] font-bold rounded-full px-10 py-3 h-auto shadow-xl shadow-emerald-500/20 group text-base"
+                  )}
+                >
+                  Go to Dashboard
+                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              ) : (
+                <Link
+                  href="/signup"
+                  className={cn(
+                    buttonVariants({ variant: "default", size: "lg" }),
+                    "bg-emerald-500 hover:bg-emerald-400 text-[#020617] font-bold rounded-full px-10 py-3 h-auto shadow-xl shadow-emerald-500/20 group text-base"
+                  )}
+                >
+                  Get Started for Free
+                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              )}
             </div>
           </div>
         </motion.div>
@@ -569,13 +615,6 @@ export default function LandingPage() {
       {/* ── Footer ── */}
       <footer className="relative z-10 max-w-7xl mx-auto w-full px-6 lg:px-12 py-8 border-t border-[#1E293B] flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-[#94A3B8]">
         <p>© 2026 PocketPilot Technologies Inc. All rights reserved.</p>
-        <div className="flex items-center gap-6">
-          <Link href="#" className="hover:text-[#F8FAFC] transition-colors">Privacy Policy</Link>
-          <Link href="#" className="hover:text-[#F8FAFC] transition-colors">Terms of Service</Link>
-          <Link href="#" className="hover:text-[#F8FAFC] transition-colors flex items-center gap-1">
-            <GitBranch className="h-3 w-3" /> Repository
-          </Link>
-        </div>
       </footer>
     </div>
   );
