@@ -105,7 +105,7 @@ It combines **Full Stack Development**, **Machine Learning**, and **Generative A
 ## 📅 Development Progress
 
 - ✅ Day 1 — Project Setup & Authentication
-- ⏳ Day 2 — Statement Upload
+- ✅ Day 2 — Statement Upload
 - ⏳ Day 3 — AI Categorization & Dashboard
 - ⏳ Day 4 — Forecasting & Analytics
 - ⏳ Day 5 — AI Financial Advisor (RAG)
