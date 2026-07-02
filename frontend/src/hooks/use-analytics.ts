@@ -42,11 +42,23 @@ export interface AnalyticsSummary {
 }
 
 export function useAnalytics() {
-  return useQuery<AnalyticsSummary>({
+  return useQuery({
     queryKey: ["analytics"],
     queryFn: async () => {
-      const { data } = await apiClient.get("/analytics/summary");
-      return data;
+      const response = await apiClient.get("/analytics/summary");
+      return response.data;
     },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+export function useIntelligentAnalytics() {
+  return useQuery({
+    queryKey: ["intelligent-analytics"],
+    queryFn: async () => {
+      const response = await apiClient.get("/analytics/intelligent");
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000,
   });
 }

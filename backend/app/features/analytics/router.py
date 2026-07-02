@@ -187,3 +187,89 @@ async def get_summary(
         "monthly_trends": monthly_trends,
         "recent_transactions": recent_transactions,
     }
+
+
+@router.get("/intelligent", summary="Get intelligent ML analytics")
+async def get_intelligent_analytics(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    """
+    Returns advanced ML-powered analytics:
+    - Anomalies (Isolation Forest)
+    - Forecasting (Prophet)
+    - Health Score
+    - Budget Recommendations
+    """
+    user_id = current_user.id
+    
+    # 1. Fetch all transactions for ML processing
+    txn_q = select(Transaction).where(Transaction.user_id == user_id).order_by(Transaction.date)
+    txn_rows = (await db.execute(txn_q)).scalars().all()
+    
+    transactions = [
+        {
+            "id": str(t.id),
+            "date": t.date.isoformat(),
+            "amount": float(t.amount),
+            "merchant": t.merchant,
+            "category": t.category,
+            "transaction_type": t.transaction_type
+        }
+        for t in txn_rows
+    ]
+    
+    # 2. Get AI Service
+    from app.features.analytics import ai_service
+    
+    # Generate Anomalies
+    anomalies = ai_service.detect_anomalies(transactions)
+    
+    # Generate Forecast
+    forecast = ai_service.generate_forecast(transactions)
+    
+    # 3. Calculate Health Score Inputs
+    total_income = sum(t["amount"] for t in transactions if t["transaction_type"] == "credit")
+    total_expense = sum(t["amount"] for t in transactions if t["transaction_type"] == "debit")
+    
+    category_totals = {}
+    for t in transactions:
+        if t["transaction_type"] == "debit":
+            cat = t["category"] or "Others"
+            category_totals[cat] = category_totals.get(cat, 0.0) + t["amount"]
+            
+    health_score = ai_service.calculate_health_score(
+        total_income=total_income,
+        total_expense=total_expense,
+        category_totals=category_totals,
+        transaction_count=len(transactions)
+    )
+    
+    # 4. Budget Recommendations (averages based on months)
+    budget_recommendations = []
+    if transactions:
+        from datetime import datetime
+        first_date = datetime.fromisoformat(transactions[0]["date"])
+        last_date = datetime.fromisoformat(transactions[-1]["date"])
+        days = (last_date - first_date).days or 1
+        months = max(1, days / 30.0)
+        
+        for cat, total in category_totals.items():
+            if total > 0:
+                monthly_avg = total / months
+                # Suggest a 5% reduction goal
+                recommended_budget = round(monthly_avg * 0.95, 2)
+                budget_recommendations.append({
+                    "category": cat,
+                    "current_avg": round(monthly_avg, 2),
+                    "recommended_budget": recommended_budget
+                })
+        
+        budget_recommendations.sort(key=lambda x: x["current_avg"], reverse=True)
+        
+    return {
+        "health_score": health_score,
+        "anomalies": anomalies,
+        "forecast": forecast,
+        "budget_recommendations": budget_recommendations
+    }

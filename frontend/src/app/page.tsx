@@ -15,7 +15,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/providers/auth-provider";
 
 /* ── Animated Dot Grid Background ── */
@@ -132,6 +132,14 @@ function AnimatedDotGrid() {
 
 /* ── Floating Orbs ── */
 function FloatingOrbs() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
   return (
     <div className="fixed inset-0 z-[1] pointer-events-none overflow-hidden">
       {/* Large slow-moving orbs */}
@@ -197,8 +205,15 @@ function FloatingOrbs() {
   );
 }
 
-/* ── Shooting Meteors ── */
 function ShootingMeteors() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
   return (
     <div className="fixed inset-0 z-[1] pointer-events-none overflow-hidden">
       {Array.from({ length: 4 }, (_, i) => (
@@ -350,16 +365,16 @@ export default function LandingPage() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.2 }}
-          className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] max-w-4xl"
+          className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.2] max-w-4xl"
           style={{ fontStyle: "italic" }}
         >
-          <span className="text-[#F8FAFC]">AI-Powered </span>
-          <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-300 bg-clip-text text-transparent">
+          <span className="text-[#F8FAFC] inline-block">AI-Powered </span>{" "}
+          <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-300 bg-clip-text text-transparent inline-block pb-1">
             Personal Finance
           </span>
-          <br />
-          <span className="text-[#F8FAFC]">for </span>
-          <span className="bg-gradient-to-r from-teal-400 to-emerald-400 bg-clip-text text-transparent">
+          <br className="hidden sm:block" />
+          <span className="text-[#F8FAFC] inline-block mt-2">for </span>{" "}
+          <span className="bg-gradient-to-r from-teal-400 to-emerald-400 bg-clip-text text-transparent inline-block pb-1 mt-2">
             Individuals
           </span>
         </motion.h1>
