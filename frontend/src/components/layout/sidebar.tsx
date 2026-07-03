@@ -10,6 +10,8 @@ import {
   Wallet,
   TrendingUp,
   BrainCircuit,
+  Bot,
+  Receipt,
   Settings,
   LogOut,
   Sparkles,
@@ -25,10 +27,10 @@ export function Sidebar({ className }: SidebarProps) {
   const { user, logout } = useAuth();
 
   const navItems = [
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/dashboard/transactions", label: "Transactions", icon: Wallet },
+    { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
+    { href: "/dashboard/transactions", label: "Transactions", icon: Receipt },
     { href: "/dashboard/analytics", label: "Analytics", icon: TrendingUp },
-    { href: "/dashboard/copilot", label: "AI Copilot", icon: BrainCircuit, disabled: true },
+    { href: "/dashboard/copilot", label: "AI Copilot", icon: Bot },
     { href: "/dashboard/settings", label: "Settings", icon: Settings },
   ];
 
