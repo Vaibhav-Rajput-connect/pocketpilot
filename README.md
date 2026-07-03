@@ -108,7 +108,7 @@ It combines **Full Stack Development**, **Machine Learning**, and **Generative A
 - ✅ Day 2 — Statement Upload
 - ✅ Day 3 — AI Categorization & Dashboard
 - ✅ Day 4 — Forecasting & Analytics
-- ⏳ Day 5 — AI Financial Advisor (RAG)
+- ✅ Day 5 — AI Financial Advisor (RAG)
 - ⏳ Day 6 — UI/UX Polish
 - ⏳ Day 7 — Deployment & CI/CD
 
@@ -167,11 +167,11 @@ PocketPilot/
 - [x] Statement Upload
 - [x] Transaction Categorization
 - [x] Expense Analytics
-- [ ] Spending Forecast
-- [ ] AI Financial Advisor
-- [ ] Budget Planner
-- [ ] Savings Goals
-- [ ] Financial Health Score
+- [x] Spending Forecast
+- [x] AI Financial Advisor
+- [x] Budget Planner
+- [x] Savings Goals
+- [x] Financial Health Score
 - [ ] AWS Deployment
 
 ---
