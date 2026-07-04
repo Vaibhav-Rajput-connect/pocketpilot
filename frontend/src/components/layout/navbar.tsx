@@ -52,8 +52,10 @@ export function Navbar() {
         
         {user && (
           <DropdownMenu>
-            <DropdownMenuTrigger render={<Button variant="ghost" className="relative h-9 w-9 rounded-full bg-primary/10 text-primary hover:bg-primary/20 font-semibold" />}>
-              {user.full_name.charAt(0).toUpperCase()}
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="relative h-9 w-9 rounded-full bg-primary/10 text-primary hover:bg-primary/20 font-semibold">
+                {user.full_name.charAt(0).toUpperCase()}
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel className="font-normal">
@@ -63,10 +65,12 @@ export function Navbar() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="gap-2 cursor-pointer">
-                <UserIcon className="h-4 w-4" />
-                <span>My Profile</span>
-              </DropdownMenuItem>
+              <Link href="/dashboard/settings">
+                <DropdownMenuItem className="gap-2 cursor-pointer">
+                  <UserIcon className="h-4 w-4" />
+                  <span>My Profile</span>
+                </DropdownMenuItem>
+              </Link>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={logout} className="gap-2 text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer">
                 <LogOut className="h-4 w-4" />
