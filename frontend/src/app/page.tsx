@@ -14,235 +14,11 @@ import {
   PiggyBank,
   BarChart3,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useTransform, useSpring } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/providers/auth-provider";
 
-/* ── Animated Dot Grid Background ── */
-function AnimatedDotGrid() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    let animationId: number;
-    let time = 0;
-    let mouseX = -1000;
-    let mouseY = -1000;
-
-    const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight * 3;
-    };
-    resize();
-    window.addEventListener("resize", resize);
-
-    const handleMouse = (e: MouseEvent) => {
-      mouseX = e.clientX;
-      mouseY = e.clientY + window.scrollY;
-    };
-    window.addEventListener("mousemove", handleMouse);
-
-    const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const spacing = 35;
-      const cols = Math.ceil(canvas.width / spacing) + 1;
-      const rows = Math.ceil(canvas.height / spacing) + 1;
-
-      for (let i = 0; i < cols; i++) {
-        for (let j = 0; j < rows; j++) {
-          const baseX = i * spacing;
-          const baseY = j * spacing;
-
-          // Distance from center
-          const cx = canvas.width / 2;
-          const cy = canvas.height / 3;
-          const dist = Math.sqrt((baseX - cx) ** 2 + (baseY - cy) ** 2);
-          const maxDist = Math.sqrt(cx ** 2 + cy ** 2);
-
-          // Wave displacement — dots physically move
-          const waveX = Math.sin(baseY * 0.015 + time * 1.5) * 4 + Math.sin(baseX * 0.008 + time * 0.8) * 2;
-          const waveY = Math.cos(baseX * 0.012 + time * 1.2) * 5 + Math.sin(dist * 0.008 - time * 0.6) * 3;
-
-          const x = baseX + waveX;
-          const y = baseY + waveY;
-
-          // Mouse proximity glow
-          const mouseDist = Math.sqrt((x - mouseX) ** 2 + (y - mouseY) ** 2);
-          const mouseGlow = Math.max(0, 1 - mouseDist / 200);
-
-          // Ripple wave for opacity/size
-          const wave = Math.sin(dist * 0.012 - time * 1.2) * 0.5 + 0.5;
-          const baseOpacity = 0.08 + wave * 0.25 * (1 - dist / maxDist * 0.7);
-          const opacity = Math.min(1, baseOpacity + mouseGlow * 0.5);
-          const radius = 1.3 + wave * 1.5 + mouseGlow * 3;
-
-          ctx.beginPath();
-          ctx.arc(x, y, radius, 0, Math.PI * 2);
-
-          if (mouseGlow > 0.1) {
-            ctx.fillStyle = `rgba(34, 197, 94, ${opacity})`;
-          } else {
-            ctx.fillStyle = `rgba(16, 185, 129, ${opacity})`;
-          }
-          ctx.fill();
-        }
-      }
-
-      // Draw faint grid lines
-      ctx.strokeStyle = "rgba(16, 185, 129, 0.03)";
-      ctx.lineWidth = 0.5;
-      for (let i = 0; i < cols; i++) {
-        ctx.beginPath();
-        ctx.moveTo(i * spacing, 0);
-        ctx.lineTo(i * spacing, canvas.height);
-        ctx.stroke();
-      }
-      for (let j = 0; j < rows; j++) {
-        ctx.beginPath();
-        ctx.moveTo(0, j * spacing);
-        ctx.lineTo(canvas.width, j * spacing);
-        ctx.stroke();
-      }
-
-      time += 0.016;
-      animationId = requestAnimationFrame(draw);
-    };
-
-    draw();
-
-    return () => {
-      window.removeEventListener("resize", resize);
-      window.removeEventListener("mousemove", handleMouse);
-      cancelAnimationFrame(animationId);
-    };
-  }, []);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      className="fixed inset-0 z-0 pointer-events-none"
-      style={{ opacity: 1 }}
-    />
-  );
-}
-
-/* ── Floating Orbs ── */
-function FloatingOrbs() {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
-
-  return (
-    <div className="fixed inset-0 z-[1] pointer-events-none overflow-hidden">
-      {/* Large slow-moving orbs */}
-      <motion.div
-        className="absolute w-[500px] h-[500px] rounded-full"
-        style={{ background: "radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 70%)" }}
-        animate={{
-          x: [-100, 100, -100],
-          y: [-50, 80, -50],
-        }}
-        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-        initial={{ top: "10%", left: "5%" }}
-      />
-      <motion.div
-        className="absolute w-[400px] h-[400px] rounded-full"
-        style={{ background: "radial-gradient(circle, rgba(20,184,166,0.10) 0%, transparent 70%)" }}
-        animate={{
-          x: [80, -80, 80],
-          y: [40, -60, 40],
-        }}
-        transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-        initial={{ top: "30%", right: "0%" }}
-      />
-      <motion.div
-        className="absolute w-[350px] h-[350px] rounded-full"
-        style={{ background: "radial-gradient(circle, rgba(34,197,94,0.08) 0%, transparent 70%)" }}
-        animate={{
-          x: [-60, 60, -60],
-          y: [30, -40, 30],
-        }}
-        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-        initial={{ bottom: "10%", left: "30%" }}
-      />
-
-      {/* Smaller bright particles */}
-      {Array.from({ length: 30 }, (_, i) => (
-        <motion.div
-          key={i}
-          className="absolute rounded-full"
-          style={{
-            width: Math.random() * 4 + 2,
-            height: Math.random() * 4 + 2,
-            background: `rgba(16, 185, 129, ${Math.random() * 0.4 + 0.2})`,
-            boxShadow: `0 0 ${Math.random() * 8 + 4}px rgba(16, 185, 129, 0.3)`,
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-          }}
-          animate={{
-            y: [0, -(Math.random() * 60 + 30), 0],
-            x: [0, Math.random() * 40 - 20, 0],
-            opacity: [0.1, 0.7, 0.1],
-            scale: [1, 1.5, 1],
-          }}
-          transition={{
-            duration: Math.random() * 10 + 8,
-            delay: Math.random() * 5,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
-function ShootingMeteors() {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
-
-  return (
-    <div className="fixed inset-0 z-[1] pointer-events-none overflow-hidden">
-      {Array.from({ length: 4 }, (_, i) => (
-        <motion.div
-          key={i}
-          className="absolute h-[1px] rounded-full"
-          style={{
-            width: Math.random() * 100 + 80,
-            background: "linear-gradient(90deg, rgba(16,185,129,0.6), transparent)",
-            top: `${Math.random() * 50 + 5}%`,
-            left: "-10%",
-            rotate: -35,
-          }}
-          animate={{
-            x: ["0vw", "130vw"],
-            opacity: [0, 1, 1, 0],
-          }}
-          transition={{
-            duration: Math.random() * 1.5 + 1,
-            delay: Math.random() * 12 + i * 4,
-            repeat: Infinity,
-            repeatDelay: Math.random() * 15 + 8,
-            ease: "linear",
-          }}
-        />
-      ))}
-    </div>
-  );
-}
+import { HeroScene } from "@/components/three/HeroScene";
 
 /* ── Stats Counter ── */
 const stats = [
@@ -277,12 +53,28 @@ export default function LandingPage() {
   const { user, isLoading } = useAuth();
   const isLoggedIn = !isLoading && user !== null;
 
+  // Parallax setup for hologram effect
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [10, -10]), { damping: 30, stiffness: 100 });
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-10, 10]), { damping: 30, stiffness: 100 });
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      const x = e.clientX / window.innerWidth - 0.5;
+      const y = e.clientY / window.innerHeight - 0.5;
+      mouseX.set(x);
+      mouseY.set(y);
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, [mouseX, mouseY]);
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-background text-foreground flex flex-col">
       {/* ── Background Layers ── */}
-      <AnimatedDotGrid />
-      <FloatingOrbs />
-      <ShootingMeteors />
+      <HeroScene />
 
       {/* Radial glow behind hero */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] bg-primary/10 rounded-full blur-[200px] z-[1] pointer-events-none" />
@@ -435,10 +227,11 @@ export default function LandingPage() {
 
         {/* ── Dashboard Preview Card ── */}
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 40, rotateX: 10 }}
+          animate={{ opacity: 1, y: 0, rotateX: 0 }}
           transition={{ duration: 0.8, delay: 1.0 }}
-          className="mt-20 w-full max-w-3xl relative"
+          className="mt-20 w-full max-w-3xl relative perspective-1000"
+          style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
         >
           {/* Glow behind card */}
           <div className="absolute -inset-4 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 rounded-3xl blur-2xl" />
