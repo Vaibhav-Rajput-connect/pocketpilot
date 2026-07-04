@@ -27,7 +27,7 @@ const containerVariants = {
 
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
+  visible: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 300, damping: 24 } },
 };
 
 function formatCurrency(val: number): string {
@@ -279,7 +279,7 @@ export default function AnalyticsPage() {
                     <Tooltip 
                       contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
                       labelFormatter={(val) => new Date(val).toLocaleDateString('en-US', { dateStyle: 'medium' })}
-                      formatter={(value: number, name: string) => [formatCurrency(value), name === 'actual' ? 'Actual Spend' : name === 'predicted' ? 'Forecast' : 'Confidence Bound']}
+                      formatter={(value: any, name: any) => [formatCurrency(Number(value)), name === 'actual' ? 'Actual Spend' : name === 'predicted' ? 'Forecast' : 'Confidence Bound']}
                     />
                     
                     {/* Confidence Interval Area */}

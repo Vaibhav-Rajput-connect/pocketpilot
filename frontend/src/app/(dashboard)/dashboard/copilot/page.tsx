@@ -6,7 +6,7 @@ import { Send, Bot, User, Sparkles, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { api } from "@/lib/api";
+
 import ReactMarkdown from "react-markdown";
 
 type Message = {
