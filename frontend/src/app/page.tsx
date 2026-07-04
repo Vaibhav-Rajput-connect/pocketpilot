@@ -278,16 +278,16 @@ export default function LandingPage() {
   const isLoggedIn = !isLoading && user !== null;
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#020617] text-[#F8FAFC] flex flex-col">
+    <div className="relative min-h-screen overflow-hidden bg-background text-foreground flex flex-col">
       {/* ── Background Layers ── */}
       <AnimatedDotGrid />
       <FloatingOrbs />
       <ShootingMeteors />
 
       {/* Radial glow behind hero */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] bg-emerald-600/10 rounded-full blur-[200px] z-[1] pointer-events-none" />
-      <div className="absolute top-[15%] right-[-5%] w-[500px] h-[500px] bg-teal-600/8 rounded-full blur-[150px] z-[1] pointer-events-none" />
-      <div className="absolute bottom-[10%] left-[-5%] w-[400px] h-[400px] bg-emerald-700/6 rounded-full blur-[120px] z-[1] pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] bg-primary/10 rounded-full blur-[200px] z-[1] pointer-events-none" />
+      <div className="absolute top-[15%] right-[-5%] w-[500px] h-[500px] bg-primary/5 rounded-full blur-[150px] z-[1] pointer-events-none" />
+      <div className="absolute bottom-[10%] left-[-5%] w-[400px] h-[400px] bg-primary/5 rounded-full blur-[120px] z-[1] pointer-events-none" />
 
       {/* ── Header ── */}
       <header className="relative z-10 flex h-20 items-center justify-between px-6 lg:px-12 max-w-7xl mx-auto w-full">
@@ -296,11 +296,11 @@ export default function LandingPage() {
             initial={{ rotate: -180, opacity: 0 }}
             animate={{ rotate: 0, opacity: 1 }}
             transition={{ duration: 0.8, type: "spring" }}
-            className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0F172A] border border-[#1E293B] shadow-lg shadow-emerald-900/20"
+            className="flex h-10 w-10 items-center justify-center rounded-xl bg-card border border-border shadow-lg shadow-primary/20"
           >
-            <Sparkles className="h-5 w-5 text-emerald-400" />
+            <Sparkles className="h-5 w-5 text-primary" />
           </motion.div>
-          <span className="text-xl font-extrabold tracking-tight text-[#F8FAFC]">
+          <span className="text-xl font-extrabold tracking-tight text-foreground">
             PocketPilot
           </span>
         </div>
@@ -311,7 +311,7 @@ export default function LandingPage() {
               href="/dashboard"
               className={cn(
                 buttonVariants({ variant: "default" }),
-                "bg-emerald-500 hover:bg-emerald-400 text-[#020617] font-bold rounded-full px-6"
+                "bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-full px-6"
               )}
             >
               Go to Dashboard
@@ -320,7 +320,7 @@ export default function LandingPage() {
             <>
               <Link
                 href="/login"
-                className="text-sm font-semibold text-[#94A3B8] hover:text-[#F8FAFC] transition-colors"
+                className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
               >
                 Sign In
               </Link>
@@ -328,7 +328,7 @@ export default function LandingPage() {
                 href="/signup"
                 className={cn(
                   buttonVariants({ variant: "default" }),
-                  "bg-emerald-500 hover:bg-emerald-400 text-[#020617] font-bold rounded-full px-6"
+                  "bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-full px-6"
                 )}
               >
                 Sign Up
@@ -350,12 +350,12 @@ export default function LandingPage() {
           <div className="relative mx-auto">
             {/* Glow ring */}
             <motion.div
-              className="absolute inset-0 rounded-3xl bg-emerald-500/20 blur-xl"
+              className="absolute inset-0 rounded-3xl bg-primary/20 blur-xl"
               animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
             />
-            <div className="relative h-20 w-20 rounded-3xl bg-[#0F172A] border border-[#1E293B] flex items-center justify-center shadow-2xl shadow-emerald-900/30">
-              <Sparkles className="h-10 w-10 text-emerald-400" />
+            <div className="relative h-20 w-20 rounded-3xl bg-card border border-border flex items-center justify-center shadow-2xl shadow-primary/30">
+              <Sparkles className="h-10 w-10 text-primary" />
             </div>
           </div>
         </motion.div>
@@ -368,13 +368,13 @@ export default function LandingPage() {
           className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.2] max-w-4xl"
           style={{ fontStyle: "italic" }}
         >
-          <span className="text-[#F8FAFC] inline-block">AI-Powered </span>{" "}
-          <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-300 bg-clip-text text-transparent inline-block pb-1">
+          <span className="text-foreground inline-block">AI-Powered </span>{" "}
+          <span className="text-primary inline-block pb-1">
             Personal Finance
           </span>
           <br className="hidden sm:block" />
-          <span className="text-[#F8FAFC] inline-block mt-2">for </span>{" "}
-          <span className="bg-gradient-to-r from-teal-400 to-emerald-400 bg-clip-text text-transparent inline-block pb-1 mt-2">
+          <span className="text-foreground inline-block mt-2">for </span>{" "}
+          <span className="text-primary inline-block pb-1 mt-2">
             Individuals
           </span>
         </motion.h1>
@@ -384,7 +384,7 @@ export default function LandingPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="mt-6 text-lg sm:text-xl text-[#94A3B8] max-w-2xl font-light leading-relaxed"
+          className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-2xl font-light leading-relaxed"
         >
           Take control of your money with AI-powered insights, smart budgeting,
           and spending forecasts.
@@ -402,7 +402,7 @@ export default function LandingPage() {
               href="/dashboard"
               className={cn(
                 buttonVariants({ variant: "default", size: "lg" }),
-                "bg-emerald-500 hover:bg-emerald-400 text-[#020617] font-bold rounded-full px-8 py-3 h-auto shadow-xl shadow-emerald-500/20 group text-base"
+                "bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-full px-8 py-3 h-auto shadow-xl shadow-primary/20 group text-base"
               )}
             >
               Go to Dashboard
@@ -414,7 +414,7 @@ export default function LandingPage() {
                 href="/signup"
                 className={cn(
                   buttonVariants({ variant: "default", size: "lg" }),
-                  "bg-emerald-500 hover:bg-emerald-400 text-[#020617] font-bold rounded-full px-8 py-3 h-auto shadow-xl shadow-emerald-500/20 group text-base"
+                  "bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-full px-8 py-3 h-auto shadow-xl shadow-primary/20 group text-base"
                 )}
               >
                 Create Free Account
@@ -424,7 +424,7 @@ export default function LandingPage() {
                 href="/login"
                 className={cn(
                   buttonVariants({ variant: "outline", size: "lg" }),
-                  "border-[#1E293B] text-[#F8FAFC] hover:bg-[#0F172A] rounded-full px-8 py-3 h-auto font-semibold text-base"
+                  "border-border text-foreground hover:bg-accent rounded-full px-8 py-3 h-auto font-semibold text-base"
                 )}
               >
                 Sign In
@@ -441,53 +441,53 @@ export default function LandingPage() {
           className="mt-20 w-full max-w-3xl relative"
         >
           {/* Glow behind card */}
-          <div className="absolute -inset-4 bg-gradient-to-r from-emerald-600/10 via-teal-500/10 to-emerald-600/10 rounded-3xl blur-2xl" />
+          <div className="absolute -inset-4 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 rounded-3xl blur-2xl" />
 
-          <div className="relative rounded-2xl border border-[#1E293B] bg-[#0F172A]/80 backdrop-blur-xl overflow-hidden shadow-2xl">
+          <div className="relative rounded-2xl border border-border bg-card/80 backdrop-blur-xl overflow-hidden shadow-2xl">
             {/* Fake browser bar */}
-            <div className="flex items-center gap-2 px-5 py-3 border-b border-[#1E293B] bg-[#0F172A]">
+            <div className="flex items-center gap-2 px-5 py-3 border-b border-border bg-card">
               <span className="h-3 w-3 rounded-full bg-red-500/80" />
               <span className="h-3 w-3 rounded-full bg-yellow-500/80" />
               <span className="h-3 w-3 rounded-full bg-green-500/80" />
-              <span className="text-xs text-[#94A3B8] font-mono ml-4">pocketpilot.app/dashboard</span>
+              <span className="text-xs text-muted-foreground font-mono ml-4">pocketpilot.app/dashboard</span>
             </div>
 
             <div className="p-6 space-y-5">
               {/* Net Worth Banner */}
-              <div className="flex justify-between items-center bg-[#020617]/60 p-5 rounded-xl border border-[#1E293B]">
+              <div className="flex justify-between items-center bg-background/60 p-5 rounded-xl border border-border">
                 <div>
-                  <p className="text-xs text-[#94A3B8] font-semibold tracking-wider">TOTAL BALANCE</p>
-                  <p className="text-3xl font-extrabold text-[#F8FAFC] mt-1">₹2,48,920</p>
+                  <p className="text-xs text-muted-foreground font-semibold tracking-wider">TOTAL BALANCE</p>
+                  <p className="text-3xl font-extrabold text-foreground mt-1">₹2,48,920</p>
                 </div>
-                <div className="flex items-center gap-1.5 text-emerald-400 text-sm font-bold bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20">
+                <div className="flex items-center gap-1.5 text-primary text-sm font-bold bg-primary/10 px-3 py-1.5 rounded-full border border-primary/20">
                   <TrendingUp className="h-3.5 w-3.5" /> +12.4%
                 </div>
               </div>
 
               {/* AI Insight */}
-              <div className="p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 space-y-2">
-                <div className="flex items-center gap-2 text-emerald-400 text-sm font-bold">
+              <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 space-y-2">
+                <div className="flex items-center gap-2 text-primary text-sm font-bold">
                   <BrainCircuit className="h-4 w-4 animate-pulse" />
                   <span>AI Copilot Insight</span>
                 </div>
-                <p className="text-sm text-[#94A3B8] leading-relaxed">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   &quot;Your dining expenses rose 14% this month. To hit your ₹8,000 savings target, cap dining at ₹2,500.&quot;
                 </p>
               </div>
 
               {/* Mini Stats */}
               <div className="grid grid-cols-3 gap-4">
-                <div className="p-3 bg-[#020617]/60 rounded-xl border border-[#1E293B] text-center">
-                  <p className="text-[10px] text-[#94A3B8] font-medium tracking-wider">INCOME</p>
-                  <p className="text-sm font-bold text-[#F8FAFC] mt-1">₹65,000</p>
+                <div className="p-3 bg-background/60 rounded-xl border border-border text-center">
+                  <p className="text-[10px] text-muted-foreground font-medium tracking-wider">INCOME</p>
+                  <p className="text-sm font-bold text-foreground mt-1">₹65,000</p>
                 </div>
-                <div className="p-3 bg-[#020617]/60 rounded-xl border border-[#1E293B] text-center">
-                  <p className="text-[10px] text-[#94A3B8] font-medium tracking-wider">SPENT</p>
+                <div className="p-3 bg-background/60 rounded-xl border border-border text-center">
+                  <p className="text-[10px] text-muted-foreground font-medium tracking-wider">SPENT</p>
                   <p className="text-sm font-bold text-red-400 mt-1">₹42,080</p>
                 </div>
-                <div className="p-3 bg-[#020617]/60 rounded-xl border border-[#1E293B] text-center">
-                  <p className="text-[10px] text-[#94A3B8] font-medium tracking-wider">SAVED</p>
-                  <p className="text-sm font-bold text-emerald-400 mt-1">₹22,920</p>
+                <div className="p-3 bg-background/60 rounded-xl border border-border text-center">
+                  <p className="text-[10px] text-muted-foreground font-medium tracking-wider">SAVED</p>
+                  <p className="text-sm font-bold text-primary mt-1">₹22,920</p>
                 </div>
               </div>
             </div>
@@ -504,13 +504,13 @@ export default function LandingPage() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#F8FAFC]">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground">
             Everything you need to{" "}
-            <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+            <span className="text-primary">
               master your money
             </span>
           </h2>
-          <p className="text-[#94A3B8] mt-4 max-w-xl mx-auto">
+          <p className="text-muted-foreground mt-4 max-w-xl mx-auto">
             Powerful AI features designed for the modern Indian saver and spender.
           </p>
         </motion.div>
@@ -523,17 +523,17 @@ export default function LandingPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.15 }}
-              className="group relative bg-[#0F172A]/60 border border-[#1E293B] p-7 rounded-2xl hover:border-emerald-500/30 hover:bg-[#0F172A]/80 transition-all duration-300"
+              className="group relative bg-card/60 border border-border p-7 rounded-2xl hover:border-primary/30 hover:bg-card/80 transition-all duration-300"
             >
               {/* Hover glow */}
-              <div className="absolute inset-0 rounded-2xl bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute inset-0 rounded-2xl bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
               <div className="relative z-10">
-                <div className="h-12 w-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 group-hover:bg-emerald-500/20 transition-all duration-300">
+                <div className="h-12 w-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-300">
                   <feature.icon className="h-6 w-6" />
                 </div>
-                <h3 className="text-lg font-bold text-[#F8FAFC] mt-5">{feature.title}</h3>
-                <p className="text-sm text-[#94A3B8] mt-2 leading-relaxed font-light">
+                <h3 className="text-lg font-bold text-foreground mt-5">{feature.title}</h3>
+                <p className="text-sm text-muted-foreground mt-2 leading-relaxed font-light">
                   {feature.description}
                 </p>
               </div>
@@ -551,9 +551,9 @@ export default function LandingPage() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#F8FAFC]">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground">
             Get started in{" "}
-            <span className="bg-gradient-to-r from-teal-400 to-emerald-400 bg-clip-text text-transparent">
+            <span className="text-primary">
               3 simple steps
             </span>
           </h2>
@@ -573,9 +573,9 @@ export default function LandingPage() {
               transition={{ duration: 0.5, delay: i * 0.15 }}
               className="text-center"
             >
-              <div className="text-5xl font-black text-emerald-500/20 mb-4">{item.step}</div>
-              <h3 className="text-lg font-bold text-[#F8FAFC]">{item.title}</h3>
-              <p className="text-sm text-[#94A3B8] mt-2 font-light">{item.desc}</p>
+              <div className="text-5xl font-black text-primary/20 mb-4">{item.step}</div>
+              <h3 className="text-lg font-bold text-foreground">{item.title}</h3>
+              <p className="text-sm text-muted-foreground mt-2 font-light">{item.desc}</p>
             </motion.div>
           ))}
         </div>
@@ -588,14 +588,13 @@ export default function LandingPage() {
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="relative rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-[#0F172A] to-[#020617] p-12 text-center overflow-hidden"
-        >
-          <div className="absolute inset-0 bg-emerald-500/5 rounded-3xl" />
+          <div className="relative rounded-3xl border border-primary/20 bg-card p-12 text-center overflow-hidden shadow-2xl">
+          <div className="absolute inset-0 bg-primary/5 rounded-3xl" />
           <div className="relative z-10">
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#F8FAFC]">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground">
               Ready to pilot your finances?
             </h2>
-            <p className="text-[#94A3B8] mt-4 max-w-lg mx-auto">
+            <p className="text-muted-foreground mt-4 max-w-lg mx-auto">
               Join thousands of users who are already taking control of their money with PocketPilot.
             </p>
             <div className="mt-8">
@@ -604,7 +603,7 @@ export default function LandingPage() {
                   href="/dashboard"
                   className={cn(
                     buttonVariants({ variant: "default", size: "lg" }),
-                    "bg-emerald-500 hover:bg-emerald-400 text-[#020617] font-bold rounded-full px-10 py-3 h-auto shadow-xl shadow-emerald-500/20 group text-base"
+                    "bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-full px-10 py-3 h-auto shadow-xl shadow-primary/20 group text-base"
                   )}
                 >
                   Go to Dashboard
@@ -615,7 +614,7 @@ export default function LandingPage() {
                   href="/signup"
                   className={cn(
                     buttonVariants({ variant: "default", size: "lg" }),
-                    "bg-emerald-500 hover:bg-emerald-400 text-[#020617] font-bold rounded-full px-10 py-3 h-auto shadow-xl shadow-emerald-500/20 group text-base"
+                    "bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-full px-10 py-3 h-auto shadow-xl shadow-primary/20 group text-base"
                   )}
                 >
                   Get Started for Free
@@ -628,7 +627,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Footer ── */}
-      <footer className="relative z-10 max-w-7xl mx-auto w-full px-6 lg:px-12 py-8 border-t border-[#1E293B] flex flex-col sm:flex-row justify-center items-center gap-4 text-xs text-[#94A3B8]">
+      <footer className="relative z-10 max-w-7xl mx-auto w-full px-6 lg:px-12 py-8 border-t border-border flex flex-col sm:flex-row justify-center items-center gap-4 text-xs text-muted-foreground">
         <p>© 2026 PocketPilot Technologies Inc. All rights reserved.</p>
       </footer>
     </div>
