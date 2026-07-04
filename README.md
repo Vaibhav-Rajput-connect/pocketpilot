@@ -109,7 +109,7 @@ It combines **Full Stack Development**, **Machine Learning**, and **Generative A
 - ✅ Day 3 — AI Categorization & Dashboard
 - ✅ Day 4 — Forecasting & Analytics
 - ✅ Day 5 — AI Financial Advisor (RAG)
-- ⏳ Day 6 — UI/UX Polish
+- ✅ Day 6 — UI/UX Polish
 - ⏳ Day 7 — Deployment & CI/CD
 
 ---
