@@ -62,15 +62,11 @@ export function ParticleField({ count = 1500 }) {
       <bufferGeometry>
         <bufferAttribute
           attach="attributes-position"
-          count={positions.length / 3}
-          array={positions}
-          itemSize={3}
+          args={[positions, 3]}
         />
         <bufferAttribute
           attach="attributes-phase"
-          count={phases.length}
-          array={phases}
-          itemSize={1}
+          args={[phases, 1]}
         />
       </bufferGeometry>
       <pointsMaterial

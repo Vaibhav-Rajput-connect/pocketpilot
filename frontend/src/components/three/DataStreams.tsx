@@ -42,6 +42,7 @@ export function DataStreams({ count = 15 }) {
   return (
     <group ref={linesRef}>
       {streams.map((stream, i) => (
+        // @ts-expect-error - TS expects SVG line element but this is R3F
         <line key={i} geometry={geometry}>
           <lineBasicMaterial 
             color="#14B8A6" 

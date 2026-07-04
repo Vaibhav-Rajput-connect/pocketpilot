@@ -253,7 +253,7 @@ export default function DashboardPage() {
                         nameKey="category"
                         stroke="none"
                       >
-                        {category_breakdown.map((entry, index) => (
+                        {category_breakdown.map((entry: any, index: number) => (
                           <Cell
                             key={entry.category}
                             fill={CATEGORY_COLORS[entry.category] || PIE_COLORS[index % PIE_COLORS.length]}
@@ -278,7 +278,7 @@ export default function DashboardPage() {
                   </ResponsiveContainer>
                   {/* Legend */}
                   <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-2 justify-center">
-                    {category_breakdown.slice(0, 6).map((entry, i) => (
+                    {category_breakdown.slice(0, 6).map((entry: any, i: number) => (
                       <div key={entry.category} className="flex items-center gap-1.5 text-xs text-muted-foreground">
                         <span
                           className="inline-block w-2.5 h-2.5 rounded-full"
@@ -368,7 +368,7 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {top_merchants.map((m, i) => {
+                  {top_merchants.map((m: any, i: number) => {
                     const maxTotal = top_merchants[0]?.total || 1;
                     const pct = (m.total / maxTotal) * 100;
                     return (
@@ -416,7 +416,7 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {recent_transactions.map((t) => (
+                  {recent_transactions.map((t: any) => (
                     <div
                       key={t.id}
                       className="flex items-center justify-between py-2 border-b border-border/30 last:border-0"

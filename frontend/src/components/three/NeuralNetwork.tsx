@@ -81,21 +81,15 @@ export function NeuralNetwork({ nodeCount = 80 }) {
         <bufferGeometry>
           <bufferAttribute
             attach="attributes-position"
-            count={positions.length / 3}
-            array={positions}
-            itemSize={3}
+            args={[positions, 3]}
           />
           <bufferAttribute
             attach="attributes-opacity"
-            count={opacities.length}
-            array={opacities}
-            itemSize={1}
+            args={[opacities, 1]}
           />
           <bufferAttribute
             attach="attributes-phase"
-            count={phases.length}
-            array={phases}
-            itemSize={1}
+            args={[phases, 1]}
           />
         </bufferGeometry>
         <pointsMaterial
@@ -112,9 +106,7 @@ export function NeuralNetwork({ nodeCount = 80 }) {
         <bufferGeometry>
           <bufferAttribute
             attach="attributes-position"
-            count={linePositions.length / 3}
-            array={linePositions}
-            itemSize={3}
+            args={[linePositions, 3]}
           />
         </bufferGeometry>
         <lineBasicMaterial

@@ -52,7 +52,7 @@ export default function CopilotPage() {
       
       const requestBody = JSON.stringify({
         query: userMessage.content,
-        history: messages.filter(m => m.role !== "system").map(m => ({
+        history: messages.map(m => ({
           role: m.role,
           content: m.content
         }))

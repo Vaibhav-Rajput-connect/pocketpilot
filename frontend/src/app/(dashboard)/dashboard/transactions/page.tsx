@@ -23,6 +23,7 @@ import {
   Loader2,
   Wallet,
   Trash2,
+  Receipt,
 } from "lucide-react";
 
 export default function TransactionsPage() {
