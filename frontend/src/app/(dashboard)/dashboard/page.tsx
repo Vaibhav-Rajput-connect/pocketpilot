@@ -474,7 +474,8 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </motion.div>
-        </>
+      </div>
+      </>
       )}
     </motion.div>
   );
