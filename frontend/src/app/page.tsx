@@ -588,7 +588,8 @@ export default function LandingPage() {
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          <div className="relative rounded-3xl border border-primary/20 bg-card p-12 text-center overflow-hidden shadow-2xl">
+          className="relative rounded-3xl border border-primary/20 bg-card p-12 text-center overflow-hidden shadow-2xl"
+        >
           <div className="absolute inset-0 bg-primary/5 rounded-3xl" />
           <div className="relative z-10">
             <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground">
