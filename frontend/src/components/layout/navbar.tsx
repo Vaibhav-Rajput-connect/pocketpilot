@@ -54,10 +54,8 @@ export function Navbar() {
         
         {user && (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-9 w-9 rounded-full bg-primary/10 text-primary hover:bg-primary/20 font-semibold">
-                {user.full_name.charAt(0).toUpperCase()}
-              </Button>
+            <DropdownMenuTrigger className="relative h-9 w-9 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary/20 font-semibold cursor-pointer outline-none">
+              {user.full_name.charAt(0).toUpperCase()}
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel className="font-normal">
