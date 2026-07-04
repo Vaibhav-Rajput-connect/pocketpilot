@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -18,6 +19,7 @@ import { Sidebar } from "./sidebar";
 import { useState } from "react";
 
 export function Navbar() {
+  const router = useRouter();
   const { user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -65,12 +67,10 @@ export function Navbar() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <Link href="/dashboard/settings">
-                <DropdownMenuItem className="gap-2 cursor-pointer">
-                  <UserIcon className="h-4 w-4" />
-                  <span>My Profile</span>
-                </DropdownMenuItem>
-              </Link>
+              <DropdownMenuItem onClick={() => router.push("/dashboard/settings")} className="gap-2 cursor-pointer">
+                <UserIcon className="h-4 w-4" />
+                <span>My Profile</span>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={logout} className="gap-2 text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer">
                 <LogOut className="h-4 w-4" />
