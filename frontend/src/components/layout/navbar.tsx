@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useAuth } from "@/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -37,12 +38,12 @@ export function Navbar() {
           <h2 className="text-lg font-bold text-foreground md:block hidden tracking-tight">
             Hello, {user?.full_name.split(" ")[0]}! Welcome Back.
           </h2>
-          <div className="md:hidden flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-teal-500" />
-            <span className="font-bold text-lg bg-gradient-to-r from-teal-500 to-teal-300 bg-clip-text text-transparent">
+          <Link href="/" className="md:hidden flex items-center gap-2 group">
+            <Sparkles className="h-5 w-5 text-teal-500 group-hover:scale-110 transition-transform" />
+            <span className="font-bold text-lg bg-gradient-to-r from-teal-500 to-teal-300 bg-clip-text text-transparent group-hover:opacity-80 transition-opacity">
               PocketPilot
             </span>
-          </div>
+          </Link>
         </div>
       </div>
 

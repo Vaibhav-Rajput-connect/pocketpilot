@@ -41,17 +41,17 @@ export function Sidebar({ className }: SidebarProps) {
         className
       )}
     >
-      <div className="flex items-center gap-2 px-2 py-4">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20">
+      <Link href="/" className="flex items-center gap-2 px-2 py-4 group">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform">
           <Sparkles className="h-5 w-5 animate-pulse" />
         </div>
         <div>
-          <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-teal-500 to-teal-300 bg-clip-text text-transparent">
+          <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-teal-500 to-teal-300 bg-clip-text text-transparent group-hover:opacity-80 transition-opacity">
             PocketPilot
           </h1>
           <p className="text-xs text-muted-foreground font-semibold">AI Finance Copilot</p>
         </div>
-      </div>
+      </Link>
 
       <nav className="flex-1 space-y-1.5 py-6">
         {navItems.map((item) => {
