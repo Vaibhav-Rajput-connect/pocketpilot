@@ -43,7 +43,7 @@ export function Sidebar({ className }: SidebarProps) {
     >
       <div className="flex items-center gap-2 px-2 py-4">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20">
-          <Sparkles className="h-5 w-5 animate-pulse text-white" />
+          <Sparkles className="h-5 w-5 animate-pulse" />
         </div>
         <div>
           <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-teal-500 to-teal-300 bg-clip-text text-transparent">
