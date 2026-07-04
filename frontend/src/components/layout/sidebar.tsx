@@ -4,16 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/providers/auth-provider";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
-  Wallet,
   TrendingUp,
-  BrainCircuit,
   Bot,
   Receipt,
-  Settings,
-  LogOut,
   Sparkles,
 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -31,7 +26,6 @@ export function Sidebar({ className }: SidebarProps) {
     { href: "/dashboard/transactions", label: "Transactions", icon: Receipt },
     { href: "/dashboard/analytics", label: "Analytics", icon: TrendingUp },
     { href: "/dashboard/copilot", label: "AI Copilot", icon: Bot },
-    { href: "/dashboard/settings", label: "Settings", icon: Settings },
   ];
 
   return (
@@ -82,27 +76,6 @@ export function Sidebar({ className }: SidebarProps) {
         })}
       </nav>
 
-      {user && (
-        <div className="border-t border-border pt-4">
-          <div className="flex items-center gap-3 px-2 py-3 rounded-lg bg-accent/20 mb-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/20 text-primary font-bold">
-              {user.full_name.charAt(0).toUpperCase()}
-            </div>
-            <div className="overflow-hidden">
-              <p className="text-sm font-medium truncate">{user.full_name}</p>
-              <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-            </div>
-          </div>
-          <Button
-            onClick={logout}
-            variant="ghost"
-            className="w-full justify-start text-muted-foreground hover:bg-destructive/10 hover:text-destructive gap-3"
-          >
-            <LogOut className="h-4 w-4" />
-            Logout
-          </Button>
-        </div>
-      )}
     </aside>
   );
 }
