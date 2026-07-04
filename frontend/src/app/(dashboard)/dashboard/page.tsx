@@ -3,6 +3,8 @@
 import { useAnalytics } from "@/hooks/use-analytics";
 import { useAuth } from "@/providers/auth-provider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   IndianRupee,
   TrendingUp,
@@ -104,8 +106,20 @@ export default function DashboardPage() {
 
   if (isLoading || !analytics) {
     return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
+      <div className="space-y-6">
+        <div>
+          <Skeleton className="h-8 w-64 mb-2" />
+          <Skeleton className="h-4 w-48" />
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-[120px] w-full rounded-xl" />
+          ))}
+        </div>
+        <div className="grid gap-6 lg:grid-cols-5">
+          <Skeleton className="h-[320px] lg:col-span-2 rounded-xl" />
+          <Skeleton className="h-[320px] lg:col-span-3 rounded-xl" />
+        </div>
       </div>
     );
   }
@@ -173,7 +187,17 @@ export default function DashboardPage() {
         </p>
       </motion.div>
 
-      {/* ── Stats Cards ── */}
+      {transaction_count === 0 ? (
+        <motion.div variants={itemVariants} className="pt-10">
+          <EmptyState 
+            icon={Receipt} 
+            title="No financial data yet" 
+            description="You haven't added any transactions. Start tracking your expenses and income to see powerful AI analytics." 
+          />
+        </motion.div>
+      ) : (
+        <>
+          {/* ── Stats Cards ── */}
       <motion.div variants={itemVariants} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {statsCards.map((card) => {
           const Icon = card.icon;
@@ -450,7 +474,8 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </motion.div>
-      </div>
+        </>
+      )}
     </motion.div>
   );
 }

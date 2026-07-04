@@ -176,11 +176,11 @@ export default function CopilotPage() {
               animate={{ opacity: 1, y: 0 }}
               className={`flex gap-4 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
             >
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-1 ${msg.role === "user" ? "bg-emerald-500 text-white" : "bg-indigo-500 text-white"}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-1 ${msg.role === "user" ? "bg-primary text-primary-foreground" : "bg-indigo-500 text-white"}`}>
                 {msg.role === "user" ? <User className="w-5 h-5" /> : <Bot className="w-5 h-5" />}
               </div>
               
-              <div className={`max-w-[80%] rounded-2xl p-4 ${msg.role === "user" ? "bg-emerald-500 text-white rounded-tr-sm" : "bg-muted rounded-tl-sm"}`}>
+              <div className={`max-w-[80%] rounded-2xl p-4 ${msg.role === "user" ? "bg-primary text-primary-foreground rounded-tr-sm" : "bg-muted rounded-tl-sm"}`}>
                 {msg.role === "assistant" ? (
                   <div className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-background/50">
                     <ReactMarkdown>{msg.content}</ReactMarkdown>
@@ -214,10 +214,25 @@ export default function CopilotPage() {
 
         {/* Input Area */}
         <div className="p-4 bg-background border-t border-border/50">
+          <div className="flex flex-wrap gap-2 mb-4 px-2">
+            {[
+              "Where did I spend the most money?",
+              "What is my total savings?",
+              "Any unusual expenses this month?",
+            ].map((pill, i) => (
+              <button
+                key={i}
+                onClick={() => setInput(pill)}
+                className="text-xs font-medium px-3 py-1.5 rounded-full bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors border border-border"
+              >
+                {pill}
+              </button>
+            ))}
+          </div>
           <div className="flex gap-3 relative">
             <Input
               placeholder="Ask anything about your finances..."
-              className="flex-1 rounded-full px-6 bg-muted/50 border-border/50 focus-visible:ring-emerald-500"
+              className="flex-1 rounded-full px-6 bg-muted/30 border-border focus-visible:ring-primary shadow-sm h-12"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -226,9 +241,9 @@ export default function CopilotPage() {
             <Button 
               onClick={handleSend} 
               disabled={!input.trim() || isTyping}
-              className="rounded-full w-10 h-10 p-0 shrink-0 bg-emerald-500 hover:bg-emerald-600 text-white transition-all shadow-md shadow-emerald-500/20"
+              className="rounded-full w-12 h-12 p-0 shrink-0 bg-primary hover:bg-primary/90 text-primary-foreground transition-all shadow-md"
             >
-              {isTyping ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4 ml-0.5" />}
+              {isTyping ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5 ml-0.5" />}
             </Button>
           </div>
           <p className="text-xs text-center text-muted-foreground mt-3 flex items-center justify-center gap-1">

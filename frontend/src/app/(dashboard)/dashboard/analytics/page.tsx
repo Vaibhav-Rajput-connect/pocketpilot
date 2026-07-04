@@ -16,6 +16,10 @@ import {
   Line
 } from "recharts";
 
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Receipt } from "lucide-react";
+
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
@@ -91,20 +95,31 @@ export default function AnalyticsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col h-[60vh] items-center justify-center space-y-4">
-        <div className="relative">
-          <BrainCircuit className="w-12 h-12 text-primary animate-pulse" />
-          <Loader2 className="w-6 h-6 animate-spin text-primary absolute -bottom-2 -right-2" />
+      <div className="space-y-6">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-10 w-10 rounded-xl" />
+          <div>
+            <Skeleton className="h-8 w-48 mb-2" />
+            <Skeleton className="h-4 w-64" />
+          </div>
         </div>
-        <p className="text-muted-foreground animate-pulse">Running machine learning models...</p>
+        <div className="grid gap-6 lg:grid-cols-3">
+          <Skeleton className="h-[350px] rounded-xl" />
+          <Skeleton className="h-[350px] lg:col-span-2 rounded-xl" />
+        </div>
+        <Skeleton className="h-[450px] rounded-xl" />
       </div>
     );
   }
 
   if (error || !ai) {
     return (
-      <div className="flex h-[60vh] items-center justify-center text-red-500">
-        Failed to load intelligent analytics. Ensure you have enough transaction data.
+      <div className="flex h-[60vh] items-center justify-center">
+        <EmptyState 
+          icon={AlertTriangle} 
+          title="Not enough data" 
+          description="Failed to load intelligent analytics. Ensure you have enough transaction data for the AI to analyze." 
+        />
       </div>
     );
   }

@@ -96,7 +96,7 @@ export default function SettingsPage() {
           <Card className="border-border bg-card/50 hover:bg-card/80 transition-colors shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle className="text-xs font-medium text-muted-foreground">Monthly Budget Income</CardTitle>
-              <IndianRupee className="h-4 w-4 text-emerald-600 dark:text-teal-500" />
+              <IndianRupee className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-foreground">
@@ -116,7 +116,7 @@ export default function SettingsPage() {
           <Card className="border-border bg-card/50 hover:bg-card/80 transition-colors shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle className="text-xs font-medium text-muted-foreground">Preferred Currency</CardTitle>
-              <Globe className="h-4 w-4 text-emerald-600 dark:text-teal-500" />
+              <Globe className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold uppercase text-foreground">{user?.currency || "INR"}</div>
@@ -129,7 +129,7 @@ export default function SettingsPage() {
           <Card className="border-border bg-card/50 hover:bg-card/80 transition-colors shadow-sm h-full">
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle className="text-xs font-medium text-muted-foreground">Account Created</CardTitle>
-              <Calendar className="h-4 w-4 text-emerald-600 dark:text-teal-500" />
+              <Calendar className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-foreground">{formattedDate}</div>
@@ -152,7 +152,7 @@ export default function SettingsPage() {
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
-                  className="flex items-center gap-2 rounded-lg bg-emerald-100 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 p-3 text-sm text-emerald-800 dark:text-emerald-400"
+                  className="flex items-center gap-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-3 text-sm text-emerald-500"
                 >
                   <CheckCircle2 className="h-4 w-4 shrink-0" />
                   <span>{successMsg}</span>
@@ -162,7 +162,7 @@ export default function SettingsPage() {
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
-                  className="flex items-center gap-2 rounded-lg bg-red-100 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 p-3 text-sm text-red-800 dark:text-red-400"
+                  className="flex items-center gap-2 rounded-lg bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive"
                 >
                   <AlertCircle className="h-4 w-4 shrink-0" />
                   <span>{errorMsg}</span>
@@ -175,11 +175,11 @@ export default function SettingsPage() {
                   id="full_name"
                   type="text"
                   placeholder="Jane Doe"
-                  className="bg-background border-input focus:border-emerald-600 transition-colors"
+                  className="bg-background border-input focus:border-primary transition-colors"
                   {...register("full_name")}
                 />
                 {errors.full_name && (
-                  <p className="text-xs text-red-500 dark:text-red-400 mt-1">{errors.full_name.message}</p>
+                  <p className="text-xs text-destructive mt-1">{errors.full_name.message}</p>
                 )}
               </div>
 
@@ -191,11 +191,11 @@ export default function SettingsPage() {
                     type="number"
                     step="0.01"
                     placeholder="5000"
-                    className="bg-background border-input focus:border-emerald-600 transition-colors"
+                    className="bg-background border-input focus:border-primary transition-colors"
                     {...register("monthly_income", { valueAsNumber: true })}
                   />
                   {errors.monthly_income && (
-                    <p className="text-xs text-red-500 dark:text-red-400 mt-1">{errors.monthly_income.message}</p>
+                    <p className="text-xs text-destructive mt-1">{errors.monthly_income.message}</p>
                   )}
                 </div>
 
@@ -205,11 +205,11 @@ export default function SettingsPage() {
                     id="currency"
                     type="text"
                     placeholder="INR"
-                    className="bg-background border-input focus:border-emerald-600 transition-colors uppercase"
+                    className="bg-background border-input focus:border-primary transition-colors uppercase"
                     {...register("currency")}
                   />
                   {errors.currency && (
-                    <p className="text-xs text-red-500 dark:text-red-400 mt-1">{errors.currency.message}</p>
+                    <p className="text-xs text-destructive mt-1">{errors.currency.message}</p>
                   )}
                 </div>
               </div>
@@ -220,7 +220,7 @@ export default function SettingsPage() {
                 <Button
                   type="submit"
                   disabled={isUpdating}
-                  className="bg-emerald-700 hover:bg-emerald-600 text-white shadow-md transition-all px-8 py-2 h-auto font-semibold"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md transition-all px-8 py-2 h-auto font-semibold"
                 >
                   {isUpdating ? (
                     <>

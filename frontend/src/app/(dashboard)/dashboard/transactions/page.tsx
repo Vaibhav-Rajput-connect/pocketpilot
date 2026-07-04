@@ -12,6 +12,8 @@ import { UploadZone } from "@/components/transactions/upload-zone";
 import { TransactionTable } from "@/components/transactions/transaction-table";
 import { TransactionModal } from "@/components/transactions/transaction-modal";
 import { BulkActionsBar } from "@/components/transactions/bulk-actions-bar";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 import { motion } from "framer-motion";
 import {
   Search,
@@ -94,10 +96,10 @@ export default function TransactionsPage() {
           <Wallet className="h-5 w-5 text-emerald-400" />
         </div>
         <div>
-          <h1 className="text-2xl font-extrabold text-[#F8FAFC]">
+          <h1 className="text-2xl font-extrabold text-foreground">
             Transactions
           </h1>
-          <p className="text-xs text-[#94A3B8]">
+          <p className="text-xs text-muted-foreground">
             Upload statements and manage your transactions
           </p>
         </div>
@@ -106,7 +108,7 @@ export default function TransactionsPage() {
           <button
             onClick={handleClearAll}
             disabled={clearAllMutation.isPending || (data?.total || 0) === 0}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive/20 border border-destructive/20 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {clearAllMutation.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -125,14 +127,14 @@ export default function TransactionsPage() {
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
         {/* Search */}
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94A3B8]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
             placeholder="Search merchant or description..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             onKeyDown={handleSearchKeyDown}
-            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-[#0F172A] border border-[#1E293B] text-sm text-[#F8FAFC] placeholder:text-[#94A3B8]/50 focus:outline-none focus:border-emerald-500/40 transition-colors"
+            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-card border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-ring transition-colors shadow-sm"
           />
         </div>
 
@@ -142,7 +144,7 @@ export default function TransactionsPage() {
           onChange={(e) =>
             updateFilter({ category: e.target.value || undefined })
           }
-          className="px-3 py-2.5 rounded-xl bg-[#0F172A] border border-[#1E293B] text-sm text-[#F8FAFC] focus:outline-none focus:border-emerald-500/40 transition-colors min-w-[140px]"
+          className="px-3 py-2.5 rounded-xl bg-card border border-border text-sm text-foreground focus:outline-none focus:border-ring transition-colors min-w-[140px] shadow-sm"
         >
           <option value="">All Categories</option>
           {categories?.map((cat) => (
@@ -156,7 +158,7 @@ export default function TransactionsPage() {
         <select
           value={filters.type || ""}
           onChange={(e) => updateFilter({ type: e.target.value || undefined })}
-          className="px-3 py-2.5 rounded-xl bg-[#0F172A] border border-[#1E293B] text-sm text-[#F8FAFC] focus:outline-none focus:border-emerald-500/40 transition-colors min-w-[120px]"
+          className="px-3 py-2.5 rounded-xl bg-card border border-border text-sm text-foreground focus:outline-none focus:border-ring transition-colors min-w-[120px] shadow-sm"
         >
           <option value="">All Types</option>
           <option value="debit">Debit</option>
@@ -170,7 +172,7 @@ export default function TransactionsPage() {
           onChange={(e) =>
             updateFilter({ date_from: e.target.value || undefined })
           }
-          className="px-3 py-2.5 rounded-xl bg-[#0F172A] border border-[#1E293B] text-sm text-[#F8FAFC] focus:outline-none focus:border-emerald-500/40 transition-colors"
+          className="px-3 py-2.5 rounded-xl bg-card border border-border text-sm text-foreground focus:outline-none focus:border-ring transition-colors shadow-sm"
           placeholder="From"
         />
         <input
@@ -179,12 +181,12 @@ export default function TransactionsPage() {
           onChange={(e) =>
             updateFilter({ date_to: e.target.value || undefined })
           }
-          className="px-3 py-2.5 rounded-xl bg-[#0F172A] border border-[#1E293B] text-sm text-[#F8FAFC] focus:outline-none focus:border-emerald-500/40 transition-colors"
+          className="px-3 py-2.5 rounded-xl bg-card border border-border text-sm text-foreground focus:outline-none focus:border-ring transition-colors shadow-sm"
         />
 
         <button
           onClick={handleSearch}
-          className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-[#020617] text-sm font-bold transition-colors shrink-0"
+          className="px-4 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-bold transition-colors shrink-0 shadow-sm"
         >
           <Filter className="h-4 w-4" />
         </button>
@@ -192,22 +194,35 @@ export default function TransactionsPage() {
 
       {/* Results count */}
       {data && (
-        <p className="text-xs text-[#94A3B8]">
+        <p className="text-xs text-muted-foreground">
           Showing{" "}
-          <span className="text-[#F8FAFC] font-semibold">
+          <span className="text-foreground font-semibold">
             {data.items.length}
           </span>{" "}
           of{" "}
-          <span className="text-[#F8FAFC] font-semibold">{data.total}</span>{" "}
+          <span className="text-foreground font-semibold">{data.total}</span>{" "}
           transactions
         </p>
       )}
 
       {/* Table */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
+        <div className="space-y-3 pt-4">
+          <Skeleton className="h-12 w-full rounded-xl" />
+          {[...Array(5)].map((_, i) => (
+            <Skeleton key={i} className="h-16 w-full rounded-xl" />
+          ))}
         </div>
+      ) : data?.items.length === 0 ? (
+        <EmptyState 
+          icon={Receipt} 
+          title="No transactions found" 
+          description={
+            Object.keys(filters).length > 2 
+              ? "No transactions match your current filters. Try adjusting them or clear your search."
+              : "You haven't uploaded any transactions yet. Use the upload zone above to get started!"
+          }
+        />
       ) : (
         <TransactionTable
           transactions={data?.items || []}
@@ -223,11 +238,11 @@ export default function TransactionsPage() {
 
       {/* Pagination */}
       {data && data.total_pages > 1 && (
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex items-center justify-center gap-2 pt-4">
           <button
             onClick={() => updateFilter({ page: (filters.page || 1) - 1 })}
             disabled={(filters.page || 1) <= 1}
-            className="p-2 rounded-lg bg-[#0F172A] border border-[#1E293B] text-[#94A3B8] hover:text-[#F8FAFC] hover:border-emerald-500/40 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            className="p-2 rounded-lg bg-card border border-border text-muted-foreground hover:text-foreground hover:border-ring disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -241,8 +256,8 @@ export default function TransactionsPage() {
                 onClick={() => updateFilter({ page })}
                 className={`h-9 w-9 rounded-lg text-xs font-bold transition-colors ${
                   isActive
-                    ? "bg-emerald-500 text-[#020617]"
-                    : "bg-[#0F172A] border border-[#1E293B] text-[#94A3B8] hover:text-[#F8FAFC] hover:border-emerald-500/40"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "bg-card border border-border text-muted-foreground hover:text-foreground hover:border-ring"
                 }`}
               >
                 {page}

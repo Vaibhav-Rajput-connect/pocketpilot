@@ -60,33 +60,23 @@ export function Sidebar({ className }: SidebarProps) {
 
           return (
             <div key={item.href} className="relative">
-              {item.disabled ? (
-                <div className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground/50 cursor-not-allowed group">
-                  <Icon className="h-4 w-4" />
-                  <span>{item.label}</span>
-                  <span className="ml-auto text-[10px] bg-muted px-1.5 py-0.5 rounded text-foreground/60 font-bold">
-                    Soon
-                  </span>
-                </div>
-              ) : (
-                <Link
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all hover:bg-accent hover:text-accent-foreground",
-                    isActive ? "bg-primary/15 text-primary font-bold" : "text-foreground/70 font-semibold"
-                  )}
-                >
-                  {isActive && (
-                    <motion.div
-                      layoutId="active-indicator"
-                      className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r bg-primary"
-                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                    />
-                  )}
-                  <Icon className={cn("h-4 w-4", isActive ? "text-primary" : "text-foreground/70")} />
-                  <span>{item.label}</span>
-                </Link>
-              )}
+              <Link
+                href={item.href}
+                className={cn(
+                  "relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors z-10",
+                  isActive ? "text-primary-foreground font-semibold" : "text-foreground/70 font-medium hover:text-foreground"
+                )}
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="sidebar-active-pill"
+                    className="absolute inset-0 rounded-lg bg-primary -z-10 shadow-sm"
+                    transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                  />
+                )}
+                <Icon className={cn("h-4 w-4 relative z-10", isActive ? "text-primary-foreground" : "text-foreground/70")} />
+                <span className="relative z-10">{item.label}</span>
+              </Link>
             </div>
           );
         })}
