@@ -14,6 +14,7 @@ echo "🚀 Starting Automated CI Deployment..."
 echo "======================================"
 
 # Navigate to app directory
+mkdir -p $APP_DIR
 cd $APP_DIR
 
 # 1. Authenticate with ECR
@@ -22,7 +23,6 @@ aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --
 
 # 2. Tag existing image as backup for Rollback
 echo "💾 Backing up current running image for potential rollback..."
-# Get the current image ID of the running backend container
 CURRENT_IMAGE_ID=$(docker images -q $ECR_REPO:latest || echo "")
 if [ -n "$CURRENT_IMAGE_ID" ]; then
     docker tag $CURRENT_IMAGE_ID $ECR_REPO:rollback-backup
@@ -37,7 +37,14 @@ docker pull $ECR_REPO:latest
 
 # 4. Restart containers
 echo "🔄 Restarting PocketPilot Backend..."
-docker compose -f docker-compose.prod.yml up -d --build backend nginx
+docker rm -f pocketpilot-backend || true
+docker run -d \
+  --name pocketpilot-backend \
+  --restart always \
+  --env-file .env \
+  -p 80:8000 \
+  $ECR_REPO:latest \
+  sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
 
 # 5. Health Check Validation
 echo "🩺 Performing Health Check..."
@@ -49,8 +56,7 @@ HEALTHY=false
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
     echo "Checking health... (Attempt $((RETRY_COUNT+1))/$MAX_RETRIES)"
     
-    # Check if Nginx (port 80) is returning a 200 OK
-    STATUS_CODE=$(curl -o /dev/null -s -w "%{http_code}\n" http://localhost/health || echo "000")
+    STATUS_CODE=$(curl -o /dev/null -s -w "%{http_code}\n" http://localhost/docs || echo "000")
     
     if [ "$STATUS_CODE" -eq 200 ]; then
         echo "✅ Health check PASSED! Deployment successful."
@@ -69,11 +75,17 @@ if [ "$HEALTHY" = false ]; then
     
     if docker image inspect $ECR_REPO:rollback-backup >/dev/null 2>&1; then
         echo "Restoring previous working image..."
-        # Tag the backup back to latest
         docker tag $ECR_REPO:rollback-backup $ECR_REPO:latest
         
         echo "Restarting containers with previous image..."
-        docker compose -f docker-compose.prod.yml up -d backend nginx
+        docker rm -f pocketpilot-backend || true
+        docker run -d \
+          --name pocketpilot-backend \
+          --restart always \
+          --env-file .env \
+          -p 80:8000 \
+          $ECR_REPO:latest \
+          sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
         
         echo "✅ Rollback complete. Application restored to previous state."
         exit 1 # Fail the CI pipeline so developers know
