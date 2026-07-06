@@ -21,6 +21,15 @@ resource "aws_launch_template" "app" {
     security_groups = [aws_security_group.ec2.id]
   }
 
+  block_device_mappings {
+    device_name = "/dev/xvda"
+    ebs {
+      volume_size           = 20
+      volume_type           = "gp3"
+      delete_on_termination = true
+    }
+  }
+
   user_data = filebase64("${path.module}/../scripts/ec2-setup.sh")
 
   tag_specifications {
