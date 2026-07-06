@@ -76,7 +76,7 @@ jobs:
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids $INSTANCE_IDS \
             --document-name "AWS-RunShellScript" \
-            --parameters 'commands=["curl -s https://raw.githubusercontent.com/Vaibhav-Rajput-connect/pocketpilot/main/aws-infrastructure/scripts/ci-deploy.sh | bash"]' \
+            --parameters 'commands=["curl -s https://raw.githubusercontent.com/Vaibhav-Rajput-connect/pocketpilot/${{ github.sha }}/aws-infrastructure/scripts/ci-deploy.sh | bash"]' \
             --comment "Deploying commit ${{ github.sha }}" \
             --query "Command.CommandId" \
             --output text)
