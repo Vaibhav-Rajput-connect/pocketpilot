@@ -46,14 +46,23 @@ EOF
 mkdir -p /opt/pocketpilot
 cd /opt/pocketpilot
 
-# We would typically pull the docker-compose.prod.yml from S3 or Git
-# Example: aws s3 cp s3://my-bucket/docker-compose.prod.yml .
+# Authenticate and pull the latest ECR image
+ACCOUNT_ID="486243787764"
+ECR_REPO="${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/pocketpilot-backend-prod"
 
-# Then pull images (assuming ECR authentication)
-# aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin <ACCOUNT_ID>.dkr.ecr.$REGION.amazonaws.com
-# docker-compose pull
+echo "Pulling latest backend image from ECR..."
+aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ECR_REPO
+docker pull $ECR_REPO:latest
 
-# Start services
-# docker-compose -f docker-compose.prod.yml up -d
+# Run the container mapping port 80 to 8000
+echo "Starting backend container..."
+docker rm -f pocketpilot-backend || true
+docker run -d \
+  --name pocketpilot-backend \
+  --restart always \
+  --env-file .env \
+  -p 80:8000 \
+  $ECR_REPO:latest \
+  sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
 
 echo "EC2 Setup Completed Successfully!"
