@@ -1,8 +1,20 @@
+version: '3.8'
+
+networks:
+  pocketpilot_net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+
 services:
   db:
     image: postgres:16-alpine
     container_name: pocketpilot-db
     restart: unless-stopped
+    networks:
+      - pocketpilot_net
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-pocketpilot}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pocketpilot_secret_2024}
@@ -17,12 +29,30 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    container_name: pocketpilot-redis
+    restart: unless-stopped
+    networks:
+      - pocketpilot_net
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: pocketpilot-backend
     restart: unless-stopped
+    networks:
+      - pocketpilot_net
     env_file:
       - .env
     environment:
@@ -34,6 +64,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     command: >
       sh -c "alembic upgrade head &&
              uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
@@ -44,12 +76,15 @@ services:
       dockerfile: Dockerfile
     container_name: pocketpilot-frontend
     restart: unless-stopped
+    networks:
+      - pocketpilot_net
     environment:
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000/api/v1}
     ports:
       - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
     depends_on:
       - backend
-
-volumes:
-  postgres_data:

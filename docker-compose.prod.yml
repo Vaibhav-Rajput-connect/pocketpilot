@@ -1,0 +1,102 @@
+version: '3.8'
+
+networks:
+  pocketpilot_prod_net:
+    driver: bridge
+
+volumes:
+  prod_postgres_data:
+  prod_redis_data:
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: pocketpilot-db-prod
+    restart: always
+    networks:
+      - pocketpilot_prod_net
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-pocketpilot}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pocketpilot_secret_2024}
+      POSTGRES_DB: ${POSTGRES_DB:-pocketpilot}
+    volumes:
+      - prod_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pocketpilot} -d ${POSTGRES_DB:-pocketpilot}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: pocketpilot-redis-prod
+    restart: always
+    networks:
+      - pocketpilot_prod_net
+    volumes:
+      - prod_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: pocketpilot-backend-prod
+    restart: always
+    networks:
+      - pocketpilot_prod_net
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: pocketpilot-frontend-prod
+    restart: always
+    networks:
+      - pocketpilot_prod_net
+    environment:
+      - NEXT_PUBLIC_API_URL=/api/v1
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  nginx:
+    image: nginx:alpine
+    container_name: pocketpilot-nginx-prod
+    restart: always
+    networks:
+      - pocketpilot_prod_net
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
