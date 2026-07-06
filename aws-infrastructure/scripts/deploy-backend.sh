@@ -12,7 +12,12 @@ ASG_NAME="pocketpilot-asg-${ENV}"
 
 echo "🚀 Starting Deployment for PocketPilot Backend ($ENV)"
 
-# 1. Authenticate with ECR
+# 1. Ensure ECR Repository Exists
+echo "📁 Checking if ECR repository exists..."
+aws ecr describe-repositories --repository-names pocketpilot-backend-${ENV} --region $AWS_REGION --no-cli-pager || \
+aws ecr create-repository --repository-name pocketpilot-backend-${ENV} --region $AWS_REGION --no-cli-pager
+
+# 2. Authenticate with ECR
 echo "🔐 Authenticating with AWS ECR..."
 aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
 
