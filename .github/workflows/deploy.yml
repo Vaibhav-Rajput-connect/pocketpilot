@@ -1,0 +1,92 @@
+name: PocketPilot CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: pocketpilot-backend-prod
+  SSM_DOCUMENT_NAME: AWS-RunShellScript
+
+jobs:
+  test-and-build:
+    name: Build & Push to ECR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and Push Docker Image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          echo "Building backend Docker image..."
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f backend/Dockerfile backend/
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          
+          echo "Pushing image to ECR..."
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+  deploy:
+    name: Deploy to EC2 via SSM
+    runs-on: ubuntu-latest
+    needs: test-and-build
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Trigger SSM Deployment Command
+        run: |
+          echo "Fetching instance IDs for Auto Scaling Group..."
+          INSTANCE_IDS=$(aws ec2 describe-instances \
+            --filters "Name=tag:aws:autoscaling:groupName,Values=pocketpilot-asg-prod" "Name=instance-state-name,Values=running" \
+            --query "Reservations[*].Instances[*].InstanceId" \
+            --output text | tr '\t' ' ')
+            
+          if [ -z "$INSTANCE_IDS" ]; then
+            echo "No running instances found in the Auto Scaling Group!"
+            exit 1
+          fi
+          
+          echo "Found instances: $INSTANCE_IDS"
+          echo "Executing CI deployment script via SSM..."
+          
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids $INSTANCE_IDS \
+            --document-name "AWS-RunShellScript" \
+            --parameters 'commands=["curl -s https://raw.githubusercontent.com/Vaibhav-Rajput-connect/pocketpilot/main/aws-infrastructure/scripts/ci-deploy.sh | bash"]' \
+            --comment "Deploying commit ${{ github.sha }}" \
+            --query "Command.CommandId" \
+            --output text)
+            
+          echo "Command ID: $COMMAND_ID"
+          echo "Waiting for command to complete on all instances..."
+          
+          # Wait for SSM command to finish
+          for ID in $INSTANCE_IDS; do
+            aws ssm wait command-executed --command-id "$COMMAND_ID" --instance-id "$ID"
+          done
+          
+          echo "✅ Deployment successful on all instances!"
