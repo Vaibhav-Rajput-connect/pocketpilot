@@ -88,7 +88,7 @@ jobs:
           EXIT_CODE=0
           for ID in $INSTANCE_IDS; do
             echo "Waiting for instance $ID..."
-            if ! aws ssm wait command-executed --command-id "$COMMAND_ID" --instance-id "$ID"; then
+            if ! aws ssm wait command-executed --command-id "$COMMAND_ID" --instance-id "$ID" --max-attempts 120; then
               echo "❌ Command failed or timed out on instance $ID"
               EXIT_CODE=1
             fi
@@ -110,9 +110,9 @@ jobs:
               --output text
             echo "=========================================="
           done
-          
+
           if [ $EXIT_CODE -ne 0 ]; then
             exit 1
           fi
-          
+
           echo "✅ Deployment successful on all instances!"
