@@ -54,6 +54,12 @@ EOF
 cd /opt/pocketpilot
 
 echo "Authenticating with ECR..."
+
+# Prevent race conditions with CI/CD SSM deployments
+exec 9>/var/lock/pocketpilot-deploy.lock
+echo "Acquiring deployment lock..."
+flock 9
+
 aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin 486243787764.dkr.ecr.us-east-1.amazonaws.com
 
 echo "Pulling latest backend image..."
