@@ -20,7 +20,11 @@ curl -L "https://github.com/docker/compose/releases/latest/download/docker-compo
 chmod +x /usr/local/bin/docker-compose
 
 # 4. Fetch Secrets from AWS Secrets Manager
-REGION=$(curl -s http://169.254.169.254/latest/meta-data/placement/region)
+TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+REGION=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/region)
+if [ -z "$REGION" ]; then
+  REGION="us-east-1"
+fi
 # Assume the environment is injected or we parse it. For now, hardcode 'prod'
 ENV="prod"
 SECRET_ID="pocketpilot-secrets-${ENV}"
