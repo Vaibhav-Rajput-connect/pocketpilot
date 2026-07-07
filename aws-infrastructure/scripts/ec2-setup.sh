@@ -32,6 +32,7 @@ SECRETS_JSON=$(aws secretsmanager get-secret-value --secret-id $SECRET_ID --regi
 export JWT_SECRET_KEY=$(echo $SECRETS_JSON | jq -r .JWT_SECRET_KEY)
 export GEMINI_API_KEY=$(echo $SECRETS_JSON | jq -r .GEMINI_API_KEY)
 # We will inject these into a .env file
+mkdir -p /opt/pocketpilot
 cat <<EOF > /opt/pocketpilot/.env
 JWT_SECRET_KEY=$JWT_SECRET_KEY
 GEMINI_API_KEY=$GEMINI_API_KEY
@@ -43,7 +44,6 @@ EOF
 # For demonstration, we assume they are added to the .env file.
 
 # 6. Pull and Run Docker Containers
-mkdir -p /opt/pocketpilot
 cd /opt/pocketpilot
 
 # We would typically pull the docker-compose.prod.yml from S3 or Git
