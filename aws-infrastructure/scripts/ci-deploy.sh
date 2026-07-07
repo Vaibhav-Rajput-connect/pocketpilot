@@ -31,7 +31,11 @@ else
     echo "No existing image found. Skipping backup."
 fi
 
-# 3. Pull latest image
+# 3. Clean up disk space before pull
+echo "🧹 Cleaning up unused Docker images..."
+docker system prune -a -f --volumes
+
+# 4. Pull latest image
 echo "⬇️ Pulling latest Docker image..."
 docker pull $ECR_REPO:latest
 
