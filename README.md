@@ -1,197 +1,216 @@
 <div align="center">
-
-# 🚀 PocketPilot
-
-### AI-Powered Personal Finance Copilot
-
-Track expenses, analyze spending patterns, forecast future expenses, and receive personalized AI-powered financial insights—all from one intelligent dashboard.
-
-<p>
-  <img src="https://img.shields.io/badge/Next.js-15-black?logo=nextdotjs" />
-  <img src="https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi" />
-  <img src="https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql" />
-  <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" />
-  <img src="https://img.shields.io/badge/TailwindCSS-06B6D4?logo=tailwindcss&logoColor=white" />
-  <img src="https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white" />
-</p>
-
-**🚧 Currently in Active Development**
-
+  <img src="https://raw.githubusercontent.com/Vaibhav-Rajput-connect/pocketpilot/main/public/logo.png" alt="PocketPilot Logo" width="120" />
+  <h1>PocketPilot</h1>
+  <p><strong>Your AI-Powered Personal Finance Copilot</strong></p>
+  
+  <p>
+    <a href="#project-overview">Overview</a> •
+    <a href="#features">Features</a> •
+    <a href="#architecture">Architecture</a> •
+    <a href="#installation">Installation</a> •
+    <a href="#aws-deployment">AWS Deployment</a> •
+    <a href="#ai-pipeline">AI & RAG</a>
+  </p>
 </div>
 
 ---
 
-## 📖 About
+## 🚀 Project Overview
 
-PocketPilot is a modern AI-powered personal finance platform that helps users understand, manage, and improve their financial health.
+**PocketPilot** is a next-generation personal finance tracking and advisory application. Rather than manually categorizing expenses, PocketPilot allows users to effortlessly upload their bank statements (PDFs), where our AI pipeline automatically extracts, cleans, and categorizes transaction data. 
 
-It combines **Full Stack Development**, **Machine Learning**, and **Generative AI** to automatically categorize transactions, analyze spending habits, forecast future expenses, and provide personalized financial recommendations.
-
----
+Coupled with a **Retrieval-Augmented Generation (RAG) Copilot** and **Machine Learning forecasting**, PocketPilot doesn't just track where your money went—it tells you *why* and predicts *where it will go next*.
 
 ## ✨ Features
 
-- 🔐 Secure Authentication (JWT)
-- 📂 CSV, Excel & PDF Bank Statement Upload
-- 🤖 AI Transaction Categorization
-- 📊 Interactive Expense Dashboard
-- 📈 Spending Forecasting
-- 🚨 Anomaly Detection
-- 💬 AI Financial Advisor (RAG)
-- 💰 Personalized Budget Recommendations
-- 🎯 Savings Goal Planner
-- ❤️ Financial Health Score
-
----
-
-## 🛠 Tech Stack
-
-### Frontend
-
-- Next.js 15
-- TypeScript
-- Tailwind CSS
-- shadcn/ui
-- Framer Motion
-- Recharts
-
-### Backend
-
-- FastAPI
-- PostgreSQL
-- SQLAlchemy
-- Alembic
-- JWT Authentication
-
-### AI & ML
-
-- LangChain
-- Gemini / OpenAI
-- FAISS
-- scikit-learn
-- Prophet
-- XGBoost
-- Isolation Forest
-
-### DevOps
-
-- Docker
-- GitHub Actions
-
-### Cloud
-
-- AWS
+- **Automated Statement Parsing**: Upload bank PDFs; AI extracts merchants, dates, and amounts seamlessly.
+- **Smart Categorization**: Transactions are automatically mapped to standard financial categories.
+- **AI Financial Copilot**: Chat with your financial data. Ask "How much did I spend on food this month?" and get accurate, context-aware answers.
+- **Expense Forecasting**: Machine learning models predict your next month's spending patterns.
+- **Anomaly Detection**: Automatically flags unusual or duplicate transactions.
+- **Stunning 3D UI**: Built with Next.js, Framer Motion, and React Three Fiber for a premium, dynamic user experience.
 
 ---
 
 ## 🏗️ Architecture
 
+PocketPilot is built using a modern, scalable, and highly performant stack:
+
+- **Frontend**: Next.js (App Router), React 19, TypeScript, Tailwind CSS, Framer Motion, Shadcn UI.
+- **Backend**: FastAPI (Python), SQLAlchemy (Async), PostgreSQL, Redis.
+- **AI/ML**: Google Gemini (LLM), LangChain, HuggingFace (Embeddings), FAISS (Vector Store), Facebook Prophet (Forecasting), Scikit-Learn (Anomaly Detection).
+- **Infrastructure**: Docker, AWS (EC2, Auto Scaling, Application Load Balancer), GitHub Actions (CI/CD).
+
+### Folder Structure
 ```text
-                   Next.js Frontend
-                           │
-                           ▼
-                    FastAPI Backend
-                           │
-      ┌──────────────┬──────────────┐
-      ▼              ▼              ▼
- PostgreSQL      AI Services      ML Services
-                           │
-                           ▼
-                  Vector Database (FAISS)
+pocketpilot/
+├── frontend/                 # Next.js Application
+│   ├── src/app/              # App router & pages
+│   ├── src/components/       # Reusable UI components & 3D scenes
+│   └── src/providers/        # Context providers (Auth, Query)
+├── backend/                  # FastAPI Application
+│   ├── app/                  # Application code (routers, models)
+│   ├── tests/                # Pytest suite
+│   ├── alembic/              # Database migrations
+│   └── docs/                 # OpenAPI & Postman specs
+├── aws-infrastructure/       # Deployment & Infrastructure scripts
+│   ├── scripts/              # EC2 setup, CI deployments
+│   └── config/               # Nginx, Docker configs
+└── docker-compose.yml        # Local development orchestration
 ```
 
 ---
 
-## 📅 Development Progress
+## ⚙️ Installation
 
-- ✅ Day 1 — Project Setup & Authentication
-- ✅ Day 2 — Statement Upload
-- ✅ Day 3 — AI Categorization & Dashboard
-- ✅ Day 4 — Forecasting & Analytics
-- ✅ Day 5 — AI Financial Advisor (RAG)
-- ✅ Day 6 — UI/UX Polish
-- ⏳ Day 7 — Deployment & CI/CD
+### Prerequisites
+- Docker & Docker Compose
+- Node.js (v20+)
+- Python (3.11+)
 
----
+### Local Development
 
-## 🚀 Local Setup
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/Vaibhav-Rajput-connect/pocketpilot.git
+   cd pocketpilot
+   ```
+
+2. **Backend Setup:**
+   ```bash
+   cd backend
+   python -m venv .venv
+   source .venv/bin/activate
+   pip install -e ".[dev]"
+   ```
+
+3. **Frontend Setup:**
+   ```bash
+   cd ../frontend
+   npm install --legacy-peer-deps
+   ```
+
+## 🔐 Environment Variables
+
+Create a `.env` file in both the `frontend` and `backend` directories.
+
+**Backend (`backend/.env`):**
+```env
+DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/pocketpilot
+REDIS_URL=redis://localhost:6379/0
+JWT_SECRET_KEY=your_super_secret_key
+GEMINI_API_KEY=your_google_gemini_api_key
+```
+
+**Frontend (`frontend/.env.local`):**
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+```
+
+## 🐳 Docker Setup
+
+To run the entire stack locally using Docker Compose:
 
 ```bash
-# Clone Repository
-git clone https://github.com/<your-username>/PocketPilot.git
-
-cd PocketPilot
+docker-compose up --build
 ```
-
-### Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-### Backend
-
-```bash
-cd backend
-pip install -r requirements.txt
-uvicorn app.main:app --reload
-```
-
-### Docker
-
-```bash
-docker compose up --build
-```
+- Frontend will be available at `http://localhost:3000`
+- Backend API will be available at `http://localhost:8000/docs`
 
 ---
 
-## 📂 Project Structure
+## ☁️ AWS Deployment
 
-```text
-PocketPilot/
-│
-├── frontend/
-├── backend/
-├── docker/
-├── docs/
-└── README.md
-```
+PocketPilot is engineered for high-availability AWS deployments.
 
----
+1. **Compute**: EC2 instances managed by an Auto Scaling Group (ASG).
+2. **Networking**: Traffic is routed through an Application Load Balancer (ALB) with SSL termination via AWS Certificate Manager (ACM).
+3. **Database**: Managed AWS RDS for PostgreSQL.
+4. **Cache**: Managed AWS ElastiCache for Redis.
+5. **Containerization**: The backend runs as a Docker container, pulling images directly from AWS ECR.
 
-## 🎯 Roadmap
-
-- [x] Authentication
-- [x] Statement Upload
-- [x] Transaction Categorization
-- [x] Expense Analytics
-- [x] Spending Forecast
-- [x] AI Financial Advisor
-- [x] Budget Planner
-- [x] Savings Goals
-- [x] Financial Health Score
-- [ ] AWS Deployment
+*Refer to `aws-infrastructure/scripts/ec2-setup.sh` for the bootstrap script used in the EC2 Launch Template.*
 
 ---
 
-## 🤝 Contributing
+## 🗄️ Database Schema
 
-Contributions, ideas, and feedback are always welcome.
+The PostgreSQL database uses the following core entities:
+- `users`: Core identity (email, password hashes, preferences).
+- `transactions`: Financial ledgers (amount, date, merchant, category, type, confidence_score).
+- `chat_history`: Stores the RAG conversational memory for the Copilot.
+
+Migrations are fully managed via **Alembic**.
+
+---
+
+## 🧠 AI Pipeline
+
+### RAG Architecture
+The PocketPilot Copilot uses a Retrieval-Augmented Generation (RAG) architecture to answer questions about your specific finances:
+1. **Embedding**: When transactions are uploaded, they are embedded using HuggingFace's `all-MiniLM-L6-v2` model.
+2. **Vector Store**: Embeddings are stored in an in-memory **FAISS** index (which can be swapped for pgvector).
+3. **Retrieval**: User queries are embedded, and the top-k most relevant transactions are retrieved.
+4. **Generation**: The context is fed into **Google Gemini**, which generates a natural language, highly personalized response.
+
+### Machine Learning Pipeline
+- **Forecasting**: We use **Facebook Prophet** to model time-series spending data, accounting for weekly and monthly seasonalities to predict future expenses.
+- **Anomaly Detection**: We utilize **Scikit-Learn's Isolation Forest** algorithm to detect statistically abnormal transactions based on historical merchant and category spending bounds.
+
+---
+
+## 🛡️ Authentication Flow
+
+PocketPilot implements a secure **OAuth2 Password Flow** using JWT (JSON Web Tokens).
+1. User submits credentials to `/api/v1/auth/login`.
+2. Backend verifies bcrypt password hash and returns an `access_token` (valid for 15 mins).
+3. Frontend stores the token securely and attaches it as a `Bearer` token in the `Authorization` header for all subsequent API requests.
+
+---
+
+## 🔄 CI/CD
+
+We use **GitHub Actions** for continuous integration and deployment:
+1. **CI Pipeline**: Runs `pytest` on the backend and `vitest` on the frontend on every pull request.
+2. **CD Pipeline**: 
+   - Builds the backend Docker image and pushes it to AWS ECR.
+   - Uses **AWS Systems Manager (SSM) Run Command** to trigger zero-downtime rolling updates across the EC2 Auto Scaling Group.
+
+---
+
+## ⚡ Performance Optimizations
+
+- **Frontend**: Next.js App Router with React Server Components, aggressive image optimization, code splitting, and lazy loading for 3D Three.js assets.
+- **Backend**: Fully asynchronous FastAPI (`async def`), `asyncpg` for non-blocking database queries, and Redis for caching LLM responses and rate-limiting.
+- **Database**: Appropriate indexing on `user_id` and `date` columns to ensure lightning-fast aggregations.
+
+## 🔒 Security Features
+
+- **Passwords**: Hashed with robust `bcrypt` algorithms.
+- **Headers**: Implements `Secure` HTTP headers (HSTS, X-Frame-Options) via the `secure` python library.
+- **Rate Limiting**: IP-based rate limiting via `slowapi` to prevent brute force and DDoS attacks.
+- **Input Validation**: Strict schema validation via Pydantic (`backend`) and Zod (`frontend`).
+- **CORS**: Strictly configured to only allow the production frontend origin.
+
+---
+
+## 🔮 Future Scope
+
+- **Plaid Integration**: Direct bank syncing as an alternative to PDF uploads.
+- **Multi-Currency Support**: Real-time FX rates for international travelers.
+- **Advanced Tax Prep**: AI categorization tailored specifically for tax write-offs.
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
----
+## 🤝 Contributing
 
-<div align="center">
-
-### ⭐ Star this repository if you like the project!
-
-**Built with ❤️ using Next.js, FastAPI, AI, and Machine Learning.**
-
-</div>
+We welcome contributions! Please follow these steps:
+1. Fork the repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'feat: Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
