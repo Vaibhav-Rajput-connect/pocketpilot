@@ -3,12 +3,7 @@
   <p><strong>Your AI-Powered Personal Finance Copilot</strong></p>
   
   <p>
-    <a href="#project-overview">Overview</a> •
-    <a href="#features">Features</a> •
-    <a href="#architecture">Architecture</a> •
-    <a href="#installation">Installation</a> •
-    <a href="#aws-deployment">AWS Deployment</a> •
-    <a href="#ai-pipeline">AI & RAG</a>
+    <a href="https://pocketpilot-fin.vercel.app">Demo</a>
   </p>
 </div>
 
