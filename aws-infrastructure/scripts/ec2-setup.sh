@@ -53,14 +53,19 @@ EOF
 # 6. Pull and Run Docker Containers
 cd /opt/pocketpilot
 
-# We would typically pull the docker-compose.prod.yml from S3 or Git
-# Example: aws s3 cp s3://my-bucket/docker-compose.prod.yml .
+echo "Authenticating with ECR..."
+aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin 486243787764.dkr.ecr.us-east-1.amazonaws.com
 
-# Then pull images (assuming ECR authentication)
-# aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin <ACCOUNT_ID>.dkr.ecr.$REGION.amazonaws.com
-# docker-compose pull
+echo "Pulling latest backend image..."
+docker pull 486243787764.dkr.ecr.us-east-1.amazonaws.com/pocketpilot-backend-prod:latest
 
-# Start services
-# docker-compose -f docker-compose.prod.yml up -d
+echo "Starting backend container..."
+docker run -d \
+  --name pocketpilot-backend \
+  --restart always \
+  --env-file .env \
+  -p 80:8000 \
+  486243787764.dkr.ecr.us-east-1.amazonaws.com/pocketpilot-backend-prod:latest \
+  sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
 
 echo "EC2 Setup Completed Successfully!"
