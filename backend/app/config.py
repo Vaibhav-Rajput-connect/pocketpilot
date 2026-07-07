@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     # Database
     database_url: str = "postgresql+asyncpg://pocketpilot:pocketpilot_secret_2024@db:5432/pocketpilot"
     database_url_sync: str = "postgresql://pocketpilot:pocketpilot_secret_2024@db:5432/pocketpilot"
+    
+    # Redis Cache
+    redis_url: str | None = None
 
     # JWT
     jwt_secret_key: str = "your-super-secret-key-change-in-production-min-32-chars!!"

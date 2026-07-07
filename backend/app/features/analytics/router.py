@@ -5,9 +5,10 @@ from __future__ import annotations
 import uuid
 from datetime import date, timedelta
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request, Response
 from sqlalchemy import select, func, case, extract, desc, cast, Float
 from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi_cache.decorator import cache
 
 from app.database import get_db
 from app.dependencies import get_current_user
@@ -16,9 +17,23 @@ from app.features.transactions.models import Transaction
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
 
+def user_key_builder(
+    func,
+    namespace: str = "",
+    request: Request = None,
+    response: Response = None,
+    *args,
+    **kwargs,
+):
+    user = kwargs.get("kwargs", {}).get("current_user")
+    user_id = str(user.id) if user else "anonymous"
+    return ":".join([namespace, request.method.lower(), request.url.path, user_id])
+
 
 @router.get("/summary", summary="Get dashboard analytics summary")
+@cache(expire=300, key_builder=user_key_builder)
 async def get_summary(
+    request: Request,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:
@@ -190,7 +205,9 @@ async def get_summary(
 
 
 @router.get("/intelligent", summary="Get intelligent ML analytics")
+@cache(expire=3600, key_builder=user_key_builder)
 async def get_intelligent_analytics(
+    request: Request,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:

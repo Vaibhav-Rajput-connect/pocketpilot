@@ -29,6 +29,8 @@ dependencies = [
     "sentence-transformers>=3.3.0",
     "slowapi>=0.1.9",
     "secure>=0.3.0",
+    "fastapi-cache2[redis]>=0.2.1",
+    "orjson>=3.10.3",
 ]
 
 [project.optional-dependencies]
