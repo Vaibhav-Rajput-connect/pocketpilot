@@ -88,8 +88,14 @@ jobs:
           EXIT_CODE=0
           for ID in $INSTANCE_IDS; do
             echo "Waiting for instance $ID..."
-            if ! aws ssm wait command-executed --command-id "$COMMAND_ID" --instance-id "$ID" --max-attempts 120; then
-              echo "❌ Command failed or timed out on instance $ID"
+            STATUS="InProgress"
+            while [[ "$STATUS" == "InProgress" || "$STATUS" == "Pending" || "$STATUS" == "Delayed" ]]; do
+              sleep 10
+              STATUS=$(aws ssm list-command-invocations --command-id "$COMMAND_ID" --instance-id "$ID" --query "CommandInvocations[0].Status" --output text)
+            done
+            
+            if [ "$STATUS" != "Success" ]; then
+              echo "❌ Command failed with status $STATUS on instance $ID"
               EXIT_CODE=1
             fi
             
