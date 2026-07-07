@@ -1,17 +1,11 @@
-data "aws_ami" "amazon_linux_2023" {
-  most_recent = true
-  owners      = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["al2023-ami-2023*-arm64"] # Using ARM64 for Graviton (t4g)
-  }
+data "aws_ssm_parameter" "al2023_ami" {
+  name = "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.1-x86_64"
 }
 
 resource "aws_launch_template" "app" {
   name_prefix   = "pocketpilot-lt-"
-  image_id      = data.aws_ami.amazon_linux_2023.id
-  instance_type = var.ec2_instance_type
+  image_id      = data.aws_ssm_parameter.al2023_ami.value
+  instance_type = "t3.small"
 
   iam_instance_profile {
     name = aws_iam_instance_profile.ec2_profile.name

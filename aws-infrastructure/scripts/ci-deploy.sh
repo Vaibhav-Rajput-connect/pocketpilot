@@ -60,7 +60,7 @@ HEALTHY=false
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
     echo "Checking health... (Attempt $((RETRY_COUNT+1))/$MAX_RETRIES)"
     
-    STATUS_CODE=$(curl -o /dev/null -s -w "%{http_code}\n" http://localhost/docs || echo "000")
+    STATUS_CODE=$(curl -o /dev/null -s -w "%{http_code}" http://localhost/docs || echo "000")
     
     if [ "$STATUS_CODE" -eq 200 ]; then
         echo "✅ Health check PASSED! Deployment successful."
