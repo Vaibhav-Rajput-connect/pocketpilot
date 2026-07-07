@@ -65,6 +65,10 @@ docker run -d \
   --restart always \
   --env-file .env \
   -p 80:8000 \
+  --log-driver=awslogs \
+  --log-opt awslogs-region=$REGION \
+  --log-opt awslogs-group=pocketpilot-backend \
+  --log-opt awslogs-create-group=true \
   486243787764.dkr.ecr.us-east-1.amazonaws.com/pocketpilot-backend-prod:latest \
   sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
 

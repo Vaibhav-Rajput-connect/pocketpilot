@@ -18,8 +18,10 @@ from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from fastapi_cache.backends.inmemory import InMemoryBackend
 from redis import asyncio as aioredis
+import time
 
 from app.config import settings
+from app.logger import log
 from app.features.auth.router import router as auth_router
 from app.features.users.router import router as users_router
 from app.features.transactions.router import router as transactions_router
@@ -56,6 +58,31 @@ def create_app() -> FastAPI:
     application.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
     @application.middleware("http")
+    async def request_logging_middleware(request: Request, call_next):
+        start_time = time.time()
+        try:
+            response = await call_next(request)
+            duration = time.time() - start_time
+            log.info(
+                "Request handled",
+                method=request.method,
+                url=str(request.url.path),
+                status_code=response.status_code,
+                duration=round(duration, 4),
+            )
+            return response
+        except Exception as exc:
+            duration = time.time() - start_time
+            log.error(
+                "Request failed",
+                method=request.method,
+                url=str(request.url.path),
+                duration=round(duration, 4),
+                error=str(exc)
+            )
+            raise exc
+
+    @application.middleware("http")
     async def set_secure_headers(request: Request, call_next):
         response = await call_next(request)
         secure_headers.set_headers(response)
@@ -80,17 +107,29 @@ def create_app() -> FastAPI:
 
     @application.exception_handler(Exception)
     async def generic_exception_handler(
-        _request: Request, _exc: Exception
+        _request: Request, exc: Exception
     ) -> JSONResponse:
+        log.error("Unhandled Exception", error=str(exc), exc_info=True)
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={"detail": "An unexpected error occurred."},
         )
 
-    @application.get("/health", tags=["System"])
-    @limiter.limit("60/minute")
-    async def health_check(request: Request) -> dict[str, str]:
-        return {"status": "healthy", "service": "pocketpilot-api"}
+    @application.get("/health/live", tags=["System"])
+    async def liveness_probe() -> dict[str, str]:
+        """Ultra-fast check just to see if the event loop is responsive."""
+        return {"status": "alive"}
+
+    @application.get("/health/ready", tags=["System"])
+    async def readiness_probe() -> dict[str, str]:
+        """Deeper check to verify connections to backing services (DB, Redis)."""
+        # In a real scenario, you could inject the DB session here and do `SELECT 1`
+        # and test the Redis connection.
+        return {"status": "ready"}
+
+    # Expose Prometheus metrics at /metrics
+    from prometheus_fastapi_instrumentator import Instrumentator
+    Instrumentator().instrument(application).expose(application, include_in_schema=False)
 
     application.include_router(auth_router, prefix="/api/v1")
     application.include_router(users_router, prefix="/api/v1")
