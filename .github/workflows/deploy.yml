@@ -76,7 +76,7 @@ jobs:
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids $INSTANCE_IDS \
             --document-name "AWS-RunShellScript" \
-            --parameters 'commands=["curl -s https://raw.githubusercontent.com/Vaibhav-Rajput-connect/pocketpilot/${{ github.sha }}/aws-infrastructure/scripts/ci-deploy.sh | bash"]' \
+            --parameters '{"commands":["for i in {1..12}; do if curl -sSf https://raw.githubusercontent.com/Vaibhav-Rajput-connect/pocketpilot/${{ github.sha }}/aws-infrastructure/scripts/ci-deploy.sh -o /tmp/ci-deploy.sh; then bash /tmp/ci-deploy.sh; exit $?; fi; echo \"Retrying curl ($i/12)...\"; sleep 10; done; exit 1"]}' \
             --comment "Deploying commit ${{ github.sha }}" \
             --query "Command.CommandId" \
             --output text)

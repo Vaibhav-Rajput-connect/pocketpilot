@@ -13,6 +13,13 @@ echo "======================================"
 echo "🚀 Starting Automated CI Deployment..."
 echo "======================================"
 
+# Wait for Docker and AWS CLI to be available (for newly launched instances)
+echo "⏳ Waiting for system readiness..."
+timeout 300 bash -c 'while ! command -v docker > /dev/null 2>&1; do echo "Waiting for docker..."; sleep 5; done'
+timeout 300 bash -c 'while ! command -v aws > /dev/null 2>&1; do echo "Waiting for aws-cli..."; sleep 5; done'
+timeout 300 bash -c 'while ! docker info > /dev/null 2>&1; do echo "Waiting for docker daemon..."; sleep 5; done'
+echo "✅ System ready!"
+
 # Navigate to app directory
 mkdir -p $APP_DIR
 cd $APP_DIR
