@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { apiClient, getErrorMessage } from "@/lib/api-client";
-import { clearTokens, getAccessToken, isAuthenticated, setTokens } from "@/lib/auth";
+import { clearTokens } from "@/lib/auth";
 import type { LoginFormData, SignupFormData } from "@/lib/validators";
 
 interface User {
@@ -21,7 +21,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (data: LoginFormData) => Promise<void>;
   signup: (data: SignupFormData) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
 
@@ -37,24 +37,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await apiClient.get<User>("/users/me");
       setUser(response.data);
+      return true;
     } catch (error) {
       console.error("Failed to fetch user:", error);
-      clearTokens();
       setUser(null);
+      return false;
     }
   };
 
   const refreshUser = async () => {
-    if (getAccessToken()) {
-      await fetchUser();
-    }
+    await fetchUser();
   };
 
   useEffect(() => {
     const initAuth = async () => {
-      if (getAccessToken()) {
-        await fetchUser();
-      }
+      await fetchUser();
       setIsLoading(false);
     };
     initAuth();
@@ -66,9 +63,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const isPublicPath = pathname === "/" || pathname === "/login" || pathname === "/signup";
     
-    if (!isAuthenticated() && !isPublicPath) {
+    if (!user && !isPublicPath) {
       router.replace("/login");
-    } else if (isAuthenticated() && (pathname === "/login" || pathname === "/signup")) {
+    } else if (user && (pathname === "/login" || pathname === "/signup")) {
       router.replace("/dashboard");
     }
   }, [user, isLoading, pathname, router]);
@@ -76,8 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
-      const response = await apiClient.post("/auth/login", data);
-      setTokens(response.data);
+      await apiClient.post("/auth/login", data);
       await fetchUser();
       router.push("/dashboard");
     } catch (error: any) {
@@ -93,8 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       // Remove confirm_password as backend doesn't expect it
       const { confirm_password, ...signupData } = data;
-      const response = await apiClient.post("/auth/signup", signupData);
-      setTokens(response.data);
+      await apiClient.post("/auth/signup", signupData);
       await fetchUser();
       router.push("/dashboard");
     } catch (error: any) {
@@ -105,7 +100,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await apiClient.post("/auth/logout");
+    } catch (e) {
+      // Ignore errors on logout
+    }
     clearTokens();
     setUser(null);
     router.push("/login");

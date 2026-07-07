@@ -14,6 +14,8 @@ interface QueueItem {
   reject: (error: unknown) => void;
 }
 
+apiClient.defaults.withCredentials = true;
+
 let isRefreshing = false;
 let failedQueue: QueueItem[] = [];
 
@@ -27,16 +29,6 @@ function processQueue(error: unknown, token: string | null = null) {
   });
   failedQueue = [];
 }
-
-apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  if (typeof window !== "undefined") {
-    const token = localStorage.getItem("access_token");
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-  }
-  return config;
-});
 
 apiClient.interceptors.response.use(
   (response) => response,
@@ -56,10 +48,7 @@ apiClient.interceptors.response.use(
         return new Promise<string>((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
-          .then((token) => {
-            if (originalRequest.headers) {
-              originalRequest.headers.Authorization = `Bearer ${token}`;
-            }
+          .then(() => {
             return apiClient(originalRequest);
           })
           .catch((err) => Promise.reject(err));
@@ -69,29 +58,14 @@ apiClient.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const refreshToken = localStorage.getItem("refresh_token");
-        if (!refreshToken) {
-          throw new Error("No refresh token");
-        }
+        // Automatically sends the HttpOnly refresh_token cookie
+        await axios.post(`${API_BASE_URL}/auth/refresh`, {}, { withCredentials: true });
 
-        const { data } = await axios.post(`${API_BASE_URL}/auth/refresh`, {
-          refresh_token: refreshToken,
-        });
-
-        localStorage.setItem("access_token", data.access_token);
-        localStorage.setItem("refresh_token", data.refresh_token);
-
-        processQueue(null, data.access_token);
-
-        if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${data.access_token}`;
-        }
+        processQueue(null, "success");
         return apiClient(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
-
+        
         if (typeof window !== "undefined") {
           window.location.href = "/login";
         }

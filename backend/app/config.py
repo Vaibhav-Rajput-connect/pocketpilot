@@ -11,6 +11,9 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
+    # Environment
+    environment: str = "dev"
+
     # Database
     database_url: str = "postgresql+asyncpg://pocketpilot:pocketpilot_secret_2024@db:5432/pocketpilot"
     database_url_sync: str = "postgresql://pocketpilot:pocketpilot_secret_2024@db:5432/pocketpilot"
