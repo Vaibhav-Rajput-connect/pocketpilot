@@ -1,5 +1,4 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/Vaibhav-Rajput-connect/pocketpilot/main/public/logo.png" alt="PocketPilot Logo" width="120" />
   <h1>PocketPilot</h1>
   <p><strong>Your AI-Powered Personal Finance Copilot</strong></p>
   
