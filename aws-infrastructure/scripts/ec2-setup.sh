@@ -41,7 +41,7 @@ cat <<EOF > /opt/pocketpilot/.env
 JWT_SECRET_KEY=$JWT_SECRET_KEY
 GEMINI_API_KEY=$GEMINI_API_KEY
 ENVIRONMENT=$ENV
-DATABASE_URL=postgresql://pocketpilot_admin:rzFms:tQp.cqH.q.u4J8H38E-Dsf@pocketpilot-db-prod.c0lgyimmap1h.us-east-1.rds.amazonaws.com:5432/pocketpilot
+DATABASE_URL=postgresql+asyncpg://pocketpilot_admin:rzFms:tQp.cqH.q.u4J8H38E-Dsf@pocketpilot-db-prod.c0lgyimmap1h.us-east-1.rds.amazonaws.com:5432/pocketpilot
 REDIS_URL=redis://master.pocketpilot-redis-prod.cpjkvq.use1.cache.amazonaws.com:6379/0
 EOF
 
