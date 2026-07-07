@@ -62,18 +62,36 @@ jobs:
 
       - name: Trigger SSM Deployment Command
         run: |
-          echo "Fetching instance IDs for Auto Scaling Group..."
-          INSTANCE_IDS=$(aws ec2 describe-instances \
+          echo "Fetching running instances from Auto Scaling Group..."
+          EC2_INSTANCES=$(aws ec2 describe-instances \
             --filters "Name=tag:aws:autoscaling:groupName,Values=pocketpilot-asg-prod" "Name=instance-state-name,Values=running" \
             --query "Reservations[*].Instances[*].InstanceId" \
             --output text | tr '\t' ' ')
             
-          if [ -z "$INSTANCE_IDS" ]; then
+          if [ -z "$EC2_INSTANCES" ]; then
             echo "No running instances found in the Auto Scaling Group!"
             exit 1
           fi
           
-          echo "Found instances: $INSTANCE_IDS"
+          echo "Filtering instances that are online in SSM..."
+          INSTANCE_IDS=""
+          for ID in $EC2_INSTANCES; do
+            PING_STATUS=$(aws ssm describe-instance-information --filters "Key=InstanceIds,Values=$ID" --query "InstanceInformationList[0].PingStatus" --output text || echo "Offline")
+            if [ "$PING_STATUS" == "Online" ]; then
+              INSTANCE_IDS="$INSTANCE_IDS $ID"
+            else
+              echo "⚠️ Instance $ID is running but not yet online in SSM. Skipping for this deployment."
+            fi
+          done
+          
+          INSTANCE_IDS=$(echo $INSTANCE_IDS | xargs)
+          
+          if [ -z "$INSTANCE_IDS" ]; then
+            echo "No SSM-ready instances found to deploy to! Exiting gracefully."
+            exit 0
+          fi
+          
+          echo "Found SSM-ready instances: $INSTANCE_IDS"
           echo "Executing CI deployment script via SSM..."
           
           COMMAND_ID=$(aws ssm send-command \
