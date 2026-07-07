@@ -13,6 +13,13 @@ echo "======================================"
 echo "🚀 Starting Automated CI Deployment..."
 echo "======================================"
 
+# Prevent concurrent deployments using a lockfile
+exec 9>/var/lock/pocketpilot-deploy.lock
+if ! flock -n 9; then
+    echo "⚠️ Another deployment is currently in progress. Waiting for it to finish..."
+    flock 9
+fi
+
 # Wait for Docker and AWS CLI to be available (for newly launched instances)
 echo "⏳ Waiting for system readiness..."
 timeout 300 bash -c 'while ! command -v docker > /dev/null 2>&1; do echo "Waiting for docker..."; sleep 5; done'

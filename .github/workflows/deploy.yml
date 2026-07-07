@@ -46,6 +46,9 @@ jobs:
     name: Deploy to EC2 via SSM
     runs-on: ubuntu-latest
     needs: test-and-build
+    concurrency:
+      group: production-deploy
+      cancel-in-progress: true
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
