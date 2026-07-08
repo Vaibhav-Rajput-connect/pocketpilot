@@ -85,11 +85,7 @@ def create_app() -> FastAPI:
     @application.middleware("http")
     async def set_secure_headers(request: Request, call_next):
         response = await call_next(request)
-        # Skip secure headers on preflight requests to avoid CORS interference
-        if request.method != "OPTIONS":
-            response.headers["X-Content-Type-Options"] = "nosniff"
-            response.headers["X-Frame-Options"] = "DENY"
-            response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        secure_headers.set_headers(response)
         return response
 
     application.add_middleware(

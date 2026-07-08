@@ -30,15 +30,6 @@ function processQueue(error: unknown, token: string | null = null) {
   failedQueue = [];
 }
 
-// Event-based auth failure notification — prevents hard page reloads
-export const AUTH_FAILURE_EVENT = "pocketpilot:auth-failure";
-
-function emitAuthFailure() {
-  if (typeof window !== "undefined") {
-    window.dispatchEvent(new CustomEvent(AUTH_FAILURE_EVENT));
-  }
-}
-
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
@@ -75,8 +66,9 @@ apiClient.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
         
-        // Emit event instead of hard redirect — AuthProvider handles navigation
-        emitAuthFailure();
+        if (typeof window !== "undefined") {
+          window.location.href = "/login";
+        }
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
@@ -105,4 +97,3 @@ export function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
   return "An unexpected error occurred.";
 }
-

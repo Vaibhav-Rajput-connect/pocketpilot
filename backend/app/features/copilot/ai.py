@@ -14,37 +14,24 @@ from app.config import settings
 # Key: user_id (str), Value: FAISS vector store
 user_vector_stores = {}
 
-# Lazy-loaded embedding model — initialized on first use to avoid import-time failures
-_embeddings = None
-
-def get_embeddings():
-    """Lazily initialize the embedding model."""
-    global _embeddings
-    if _embeddings is None:
-        try:
-            _embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-        except Exception as e:
-            import logging
-            logging.getLogger(__name__).error(f"Failed to load embedding model: {e}")
-            raise ValueError(f"Embedding model initialization failed: {e}")
-    return _embeddings
+# We load a local embedding model that doesn't require an API key
+# all-MiniLM-L6-v2 is fast and excellent for general semantic search
+embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
 def get_llm(streaming: bool = False):
     """
     Initializes the LLM based on environment configuration.
     Defaults to Gemini if configured, otherwise fails gracefully.
     """
-    if not settings.gemini_api_key:
-        raise ValueError("GEMINI_API_KEY is not configured in .env")
-    try:
+    if settings.gemini_api_key:
         return ChatGoogleGenerativeAI(
             model="gemini-2.5-flash",
             google_api_key=settings.gemini_api_key,
             temperature=0.2,
             streaming=streaming
         )
-    except Exception as e:
-        raise ValueError(f"Failed to initialize Gemini LLM: {e}")
+    # If no key is set, we could raise an error or return a mock for testing
+    raise ValueError("GEMINI_API_KEY is not configured in .env")
 
 def build_user_index(user_id: str, transactions: list[dict]):
     """
@@ -52,7 +39,6 @@ def build_user_index(user_id: str, transactions: list[dict]):
     """
     if not transactions:
         # Create an empty index if no transactions
-        embeddings = get_embeddings()
         user_vector_stores[str(user_id)] = FAISS.from_texts(["No transaction data available yet."], embeddings)
         return
 
@@ -81,7 +67,6 @@ def build_user_index(user_id: str, transactions: list[dict]):
         })
         
     # Build FAISS index
-    embeddings = get_embeddings()
     vector_store = FAISS.from_texts(texts=docs, embedding=embeddings, metadatas=metadatas)
     user_vector_stores[str(user_id)] = vector_store
 

@@ -1,8 +1,8 @@
 "use client";
 
-import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { apiClient, getErrorMessage, AUTH_FAILURE_EVENT } from "@/lib/api-client";
+import { apiClient, getErrorMessage } from "@/lib/api-client";
 import { clearTokens } from "@/lib/auth";
 import type { LoginFormData, SignupFormData } from "@/lib/validators";
 
@@ -27,74 +27,48 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const PUBLIC_PATHS = ["/", "/login", "/signup"];
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isInitialized, setIsInitialized] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
-  const isRedirecting = useRef(false);
 
-  const isPublicPath = PUBLIC_PATHS.includes(pathname);
-
-  const fetchUser = useCallback(async () => {
+  const fetchUser = async () => {
     try {
       const response = await apiClient.get<User>("/users/me");
       setUser(response.data);
       return true;
-    } catch {
+    } catch (error) {
+      console.error("Failed to fetch user:", error);
       setUser(null);
       return false;
     }
-  }, []);
+  };
 
-  const refreshUser = useCallback(async () => {
+  const refreshUser = async () => {
     await fetchUser();
-  }, [fetchUser]);
+  };
 
-  // Initial auth check — only on non-auth pages
   useEffect(() => {
     const initAuth = async () => {
-      if (!isPublicPath) {
-        await fetchUser();
-      }
+      await fetchUser();
       setIsLoading(false);
-      setIsInitialized(true);
     };
     initAuth();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Listen for auth failure events from the API client interceptor
+  // Protected route checking
   useEffect(() => {
-    const handleAuthFailure = () => {
-      setUser(null);
-      if (!isPublicPath && !isRedirecting.current) {
-        isRedirecting.current = true;
-        router.replace("/login");
-        // Reset after navigation settles
-        setTimeout(() => { isRedirecting.current = false; }, 1000);
-      }
-    };
+    if (isLoading) return;
 
-    window.addEventListener(AUTH_FAILURE_EVENT, handleAuthFailure);
-    return () => window.removeEventListener(AUTH_FAILURE_EVENT, handleAuthFailure);
-  }, [isPublicPath, router]);
-
-  // Protected route checking — only after initialization completes
-  useEffect(() => {
-    if (!isInitialized || isLoading || isRedirecting.current) return;
-
+    const isPublicPath = pathname === "/" || pathname === "/login" || pathname === "/signup";
+    
     if (!user && !isPublicPath) {
-      isRedirecting.current = true;
       router.replace("/login");
-      setTimeout(() => { isRedirecting.current = false; }, 1000);
     } else if (user && (pathname === "/login" || pathname === "/signup")) {
       router.replace("/dashboard");
     }
-  }, [user, isInitialized, isLoading, pathname, isPublicPath, router]);
+  }, [user, isLoading, pathname, router]);
 
   const login = async (data: LoginFormData) => {
     setIsLoading(true);
@@ -103,6 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await fetchUser();
       router.push("/dashboard");
     } catch (error: any) {
+      setIsLoading(false);
       throw new Error(getErrorMessage(error));
     } finally {
       setIsLoading(false);
@@ -118,6 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await fetchUser();
       router.push("/dashboard");
     } catch (error: any) {
+      setIsLoading(false);
       throw new Error(getErrorMessage(error));
     } finally {
       setIsLoading(false);
@@ -127,7 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     try {
       await apiClient.post("/auth/logout");
-    } catch {
+    } catch (e) {
       // Ignore errors on logout
     }
     clearTokens();
@@ -159,4 +135,3 @@ export function useAuth() {
   return context;
 }
 export type { User };
-
