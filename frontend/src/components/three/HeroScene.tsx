@@ -29,8 +29,8 @@ export function HeroScene() {
     <div className="absolute inset-0 z-0 pointer-events-none">
       <Canvas
         camera={{ position: [0, 0, 10], fov: 50 }}
-        gl={{ antialias: true, alpha: true }}
-        dpr={[1, 2]}
+        gl={{ antialias: false, alpha: true, powerPreference: "high-performance" }}
+        dpr={[1, 1]}
       >
         <Suspense fallback={null}>
           <ambientLight intensity={0.5} />

@@ -31,11 +31,7 @@ from app.features.copilot.router import router as copilot_router
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
-    if settings.redis_url:
-        redis = aioredis.from_url(settings.redis_url, encoding="utf8", decode_responses=False)
-        FastAPICache.init(RedisBackend(redis), prefix="pocketpilot-cache")
-    else:
-        FastAPICache.init(InMemoryBackend(), prefix="pocketpilot-cache")
+    # Cache initialization moved to create_app() to support serverless environments
     yield
 
 limiter = Limiter(key_func=get_remote_address)
@@ -140,6 +136,13 @@ def create_app() -> FastAPI:
     application.include_router(transactions_router, prefix="/api/v1")
     application.include_router(analytics_router, prefix="/api/v1")
     application.include_router(copilot_router, prefix="/api/v1")
+
+    # Initialize cache eagerly for serverless environments where lifespan might not run
+    if settings.redis_url:
+        redis = aioredis.from_url(settings.redis_url, encoding="utf8", decode_responses=False)
+        FastAPICache.init(RedisBackend(redis), prefix="pocketpilot-cache")
+    else:
+        FastAPICache.init(InMemoryBackend(), prefix="pocketpilot-cache")
 
     return application
 
