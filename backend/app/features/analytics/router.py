@@ -32,7 +32,6 @@ def user_key_builder(
 
 
 @router.get("/summary", summary="Get dashboard analytics summary")
-@cache(expire=300, key_builder=user_key_builder)
 async def get_summary(
     request: Request,
     db: AsyncSession = Depends(get_db),
@@ -206,7 +205,6 @@ async def get_summary(
 
 
 @router.get("/intelligent", summary="Get intelligent ML analytics")
-@cache(expire=3600, key_builder=user_key_builder)
 async def get_intelligent_analytics(
     request: Request,
     db: AsyncSession = Depends(get_db),
