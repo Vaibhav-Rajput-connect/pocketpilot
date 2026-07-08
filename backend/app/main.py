@@ -115,6 +115,7 @@ def create_app() -> FastAPI:
             content={"detail": "An unexpected error occurred."},
         )
 
+    @application.get("/health", tags=["System"])
     @application.get("/health/live", tags=["System"])
     async def liveness_probe() -> dict[str, str]:
         """Ultra-fast check just to see if the event loop is responsive."""
