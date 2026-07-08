@@ -156,7 +156,13 @@ async def stream_chat_response(user_id: str, query: str, history: list[dict] = N
                 
     except Exception as e:
         import json
-        data = json.dumps({"text": f"\n\nError generating response: {str(e)}"})
+        error_msg = str(e)
+        if "API_KEY_INVALID" in error_msg or "API key not valid" in error_msg:
+            clean_msg = "\n\nError: The Gemini API Key is invalid or missing. Please provide a valid API key in the backend environment variables."
+        else:
+            clean_msg = f"\n\nError generating response: {error_msg}"
+            
+        data = json.dumps({"text": clean_msg})
         yield f"data: {data}\n\n"
         
     # Send done signal

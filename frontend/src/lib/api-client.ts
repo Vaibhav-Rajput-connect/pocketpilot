@@ -67,7 +67,7 @@ apiClient.interceptors.response.use(
         processQueue(refreshError, null);
         
         if (typeof window !== "undefined") {
-          window.location.href = "/login";
+          window.dispatchEvent(new CustomEvent("pocketpilot:auth-failure"));
         }
         return Promise.reject(refreshError);
       } finally {

@@ -29,6 +29,7 @@ def set_auth_cookies(response: Response, tokens: dict[str, str]) -> None:
         httponly=True,
         secure=secure_cookie,
         samesite="lax",
+        path="/",
         max_age=settings.access_token_expire_minutes * 60,
     )
     response.set_cookie(
@@ -37,6 +38,7 @@ def set_auth_cookies(response: Response, tokens: dict[str, str]) -> None:
         httponly=True,
         secure=secure_cookie,
         samesite="lax",
+        path="/",
         max_age=settings.refresh_token_expire_days * 24 * 60 * 60,
     )
 
@@ -97,6 +99,6 @@ async def refresh_token(
     summary="Logout and clear auth cookies",
 )
 async def logout(response: Response) -> dict:
-    response.delete_cookie(key="access_token", httponly=True, samesite="lax")
-    response.delete_cookie(key="refresh_token", httponly=True, samesite="lax")
+    response.delete_cookie(key="access_token", httponly=True, samesite="lax", path="/")
+    response.delete_cookie(key="refresh_token", httponly=True, samesite="lax", path="/")
     return {"status": "success", "message": "Logged out successfully"}

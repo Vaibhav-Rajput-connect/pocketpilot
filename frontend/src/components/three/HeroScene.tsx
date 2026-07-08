@@ -37,8 +37,8 @@ export function HeroScene() {
           <directionalLight position={[10, 10, 5]} intensity={1} />
           <Environment preset="city" />
           
-          <ParticleField count={isMobile ? 500 : 1500} />
-          <NeuralNetwork nodeCount={isMobile ? 30 : 60} />
+          <ParticleField count={isMobile ? 200 : 800} />
+          <NeuralNetwork nodeCount={isMobile ? 20 : 40} />
           
           {!isMobile && (
             <>

@@ -27,48 +27,72 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const PUBLIC_PATHS = ["/", "/login", "/signup"];
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+  const isRedirecting = React.useRef(false);
 
-  const fetchUser = async () => {
+  const isPublicPath = PUBLIC_PATHS.includes(pathname);
+
+  const fetchUser = React.useCallback(async () => {
     try {
       const response = await apiClient.get<User>("/users/me");
       setUser(response.data);
       return true;
     } catch (error) {
-      console.error("Failed to fetch user:", error);
       setUser(null);
       return false;
     }
-  };
+  }, []);
 
-  const refreshUser = async () => {
+  const refreshUser = React.useCallback(async () => {
     await fetchUser();
-  };
+  }, [fetchUser]);
 
   useEffect(() => {
     const initAuth = async () => {
-      await fetchUser();
+      if (!isPublicPath) {
+        await fetchUser();
+      }
       setIsLoading(false);
+      setIsInitialized(true);
     };
     initAuth();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Listen for auth failure events from the API client interceptor
+  useEffect(() => {
+    const handleAuthFailure = () => {
+      setUser(null);
+      if (!isPublicPath && !isRedirecting.current) {
+        isRedirecting.current = true;
+        router.replace("/login");
+        setTimeout(() => { isRedirecting.current = false; }, 1000);
+      }
+    };
+
+    window.addEventListener("pocketpilot:auth-failure", handleAuthFailure);
+    return () => window.removeEventListener("pocketpilot:auth-failure", handleAuthFailure);
+  }, [isPublicPath, router]);
 
   // Protected route checking
   useEffect(() => {
-    if (isLoading) return;
+    if (!isInitialized || isLoading || isRedirecting.current) return;
 
-    const isPublicPath = pathname === "/" || pathname === "/login" || pathname === "/signup";
-    
     if (!user && !isPublicPath) {
+      isRedirecting.current = true;
       router.replace("/login");
+      setTimeout(() => { isRedirecting.current = false; }, 1000);
     } else if (user && (pathname === "/login" || pathname === "/signup")) {
       router.replace("/dashboard");
     }
-  }, [user, isLoading, pathname, router]);
+  }, [user, isLoading, isInitialized, pathname, isPublicPath, router]);
 
   const login = async (data: LoginFormData) => {
     setIsLoading(true);
