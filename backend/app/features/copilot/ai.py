@@ -14,9 +14,18 @@ from app.config import settings
 # Key: user_id (str), Value: FAISS vector store
 user_vector_stores = {}
 
-# We load a local embedding model that doesn't require an API key
-# all-MiniLM-L6-v2 is fast and excellent for general semantic search
-embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+# Lazy initialization for the embeddings model to prevent import-time download/errors
+_embeddings = None
+
+def get_embeddings():
+    global _embeddings
+    if _embeddings is None:
+        try:
+            _embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+        except Exception as e:
+            print(f"Failed to initialize embeddings: {e}")
+            _embeddings = None
+    return _embeddings
 
 def get_llm(streaming: bool = False):
     """
@@ -39,7 +48,11 @@ def build_user_index(user_id: str, transactions: list[dict]):
     """
     if not transactions:
         # Create an empty index if no transactions
-        user_vector_stores[str(user_id)] = FAISS.from_texts(["No transaction data available yet."], embeddings)
+        embed_model = get_embeddings()
+        if not embed_model:
+            print("Warning: Embeddings model not available, using empty FAISS fallback")
+            return
+        user_vector_stores[str(user_id)] = FAISS.from_texts(["No transaction data available yet."], embed_model)
         return
 
     docs = []
@@ -67,7 +80,11 @@ def build_user_index(user_id: str, transactions: list[dict]):
         })
         
     # Build FAISS index
-    vector_store = FAISS.from_texts(texts=docs, embedding=embeddings, metadatas=metadatas)
+    embed_model = get_embeddings()
+    if not embed_model:
+        print("Warning: Embeddings model not available, skipping FAISS build")
+        return
+    vector_store = FAISS.from_texts(texts=docs, embedding=embed_model, metadatas=metadatas)
     user_vector_stores[str(user_id)] = vector_store
 
 
