@@ -25,7 +25,8 @@ def user_key_builder(
     *args,
     **kwargs,
 ):
-    user = kwargs.get("kwargs", {}).get("current_user")
+    # fastapi-cache2 passes dependency-injected params in kwargs directly
+    user = kwargs.get("current_user")
     user_id = str(user.id) if user else "anonymous"
     return ":".join([namespace, request.method.lower(), request.url.path, user_id])
 

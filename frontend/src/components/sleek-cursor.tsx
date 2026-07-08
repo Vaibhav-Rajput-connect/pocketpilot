@@ -41,7 +41,13 @@ export function SleekCursor() {
     };
 
     const hoverables = addHoverListeners();
-    const observer = new MutationObserver(() => addHoverListeners());
+    
+    // Debounce MutationObserver to prevent excessive reflow on dynamic content
+    let observerTimeout: ReturnType<typeof setTimeout>;
+    const observer = new MutationObserver(() => {
+      clearTimeout(observerTimeout);
+      observerTimeout = setTimeout(() => addHoverListeners(), 500);
+    });
     observer.observe(document.body, { childList: true, subtree: true });
 
     return () => {
@@ -54,9 +60,10 @@ export function SleekCursor() {
         el.removeEventListener("mouseenter", handleHoverStart);
         el.removeEventListener("mouseleave", handleHoverEnd);
       });
+      clearTimeout(observerTimeout);
       observer.disconnect();
     };
-  }, [isVisible]);
+  }, []);
 
   // Don't render on touch devices
   if (typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches) {
