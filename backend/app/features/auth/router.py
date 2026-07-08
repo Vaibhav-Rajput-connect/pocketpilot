@@ -22,13 +22,14 @@ logger = logging.getLogger(__name__)
 def set_auth_cookies(response: Response, tokens: dict[str, str]) -> None:
     """Helper to set secure HTTP-only cookies."""
     secure_cookie = settings.environment.lower() == "prod"
+    samesite_policy = "none" if secure_cookie else "lax"
     
     response.set_cookie(
         key="access_token",
         value=tokens["access_token"],
         httponly=True,
         secure=secure_cookie,
-        samesite="lax",
+        samesite=samesite_policy,
         path="/",
         max_age=settings.access_token_expire_minutes * 60,
     )
@@ -37,7 +38,7 @@ def set_auth_cookies(response: Response, tokens: dict[str, str]) -> None:
         value=tokens["refresh_token"],
         httponly=True,
         secure=secure_cookie,
-        samesite="lax",
+        samesite=samesite_policy,
         path="/",
         max_age=settings.refresh_token_expire_days * 24 * 60 * 60,
     )
@@ -99,6 +100,8 @@ async def refresh_token(
     summary="Logout and clear auth cookies",
 )
 async def logout(response: Response) -> dict:
-    response.delete_cookie(key="access_token", httponly=True, samesite="lax", path="/")
-    response.delete_cookie(key="refresh_token", httponly=True, samesite="lax", path="/")
+    secure_cookie = settings.environment.lower() == "prod"
+    samesite_policy = "none" if secure_cookie else "lax"
+    response.delete_cookie(key="access_token", httponly=True, samesite=samesite_policy, path="/", secure=secure_cookie)
+    response.delete_cookie(key="refresh_token", httponly=True, samesite=samesite_policy, path="/", secure=secure_cookie)
     return {"status": "success", "message": "Logged out successfully"}
