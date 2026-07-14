@@ -31,18 +31,17 @@ class CSVParser(BaseParser):
         if len(all_rows) < 2:
             return []
 
-        # First non-empty row with enough columns is likely the header
-        header_idx = 0
+        # Find header row by looking for date and amount columns
+        header_idx = -1
+        col_map = None
         for i, row in enumerate(all_rows):
-            if len([c for c in row if c.strip()]) >= 3:
+            temp_map = detect_columns(row)
+            if temp_map["date"] is not None and (temp_map["amount"] is not None or temp_map["debit"] is not None):
                 header_idx = i
+                col_map = temp_map
                 break
 
-        headers = all_rows[header_idx]
-        col_map = detect_columns(headers)
-
-        # If we couldn't detect a date column, this isn't a valid statement
-        if col_map["date"] is None:
+        if header_idx == -1 or col_map is None:
             return []
 
         data_rows = all_rows[header_idx + 1:]
