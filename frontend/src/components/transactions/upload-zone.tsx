@@ -82,7 +82,7 @@ export function UploadZone() {
         <input
           id="file-upload"
           type="file"
-          accept=".csv,.xlsx,.xls,.pdf"
+          accept=".csv,.xlsx,.xls"
           onChange={onFileSelect}
           className="hidden"
         />
@@ -107,7 +107,7 @@ export function UploadZone() {
                 </span>
               </p>
               <p className="text-xs text-[#94A3B8] mt-1">
-                Supports CSV, Excel (.xlsx), and PDF — Max 10MB
+                Supports CSV and Excel (.xlsx) — Max 10MB
               </p>
             </div>
           </div>
