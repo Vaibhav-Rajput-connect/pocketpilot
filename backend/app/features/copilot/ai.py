@@ -77,25 +77,28 @@ def build_user_index(user_id: str, transactions: list[dict]):
     docs = []
     metadatas = []
     
-    for t in transactions:
-        # Create a rich text description of the transaction
-        date_str = t["date"].split("T")[0]
-        ttype = t["transaction_type"].capitalize()
-        amount = f"₹{float(t['amount']):.2f}"
-        merchant = t.get("merchant") or "Unknown"
-        category = t.get("category") or "Others"
-        desc = t.get("description") or "No description"
+    # Chunk transactions into groups of 20 to avoid hitting the 100 RPM Gemini API limit
+    chunk_size = 20
+    for i in range(0, len(transactions), chunk_size):
+        chunk = transactions[i:i + chunk_size]
+        chunk_text_parts = []
         
-        text = f"On {date_str}, there was a {ttype} transaction of {amount} at {merchant} in the {category} category. Description: {desc}"
+        for t in chunk:
+            date_str = str(t.get("date", "Unknown")).split("T")[0]
+            ttype = str(t.get("type", "UNKNOWN")).capitalize()
+            amount = f"₹{float(t.get('amount', 0)):.2f}"
+            merchant = str(t.get("merchant", "Unknown"))
+            category = str(t.get("category", "Others"))
+            desc = str(t.get("description", ""))
+            
+            chunk_text_parts.append(f"[{date_str}] {ttype} of {amount} at {merchant} ({category}). Desc: {desc}")
+            
+        chunk_text = "\n".join(chunk_text_parts)
+        docs.append(chunk_text)
         
-        docs.append(text)
         metadatas.append({
-            "id": t["id"],
-            "date": date_str,
-            "amount": float(t["amount"]),
-            "merchant": merchant,
-            "category": category,
-            "type": ttype
+            "chunk_index": i // chunk_size,
+            "transaction_count": len(chunk)
         })
         
     # Build FAISS index
