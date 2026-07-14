@@ -11,12 +11,17 @@ from app.config import settings
 
 # Global dictionary to store FAISS indices per user (in-memory for this implementation)
 # Key: user_id (str), Value: FAISS vector store
-user_vector_stores = {}
+user_vector_stores: dict[str, FAISS] = {}
+user_vector_errors: dict[str, str] = {}
 
 # Lazy initialization for the embeddings model to prevent import-time download/errors
 _embeddings = None
 
 def get_embeddings():
+    """
+    Initializes the embedding model based on environment configuration.
+    Defaults to Gemini if configured, otherwise fails gracefully.
+    """
     global _embeddings
     if _embeddings is None:
         try:
@@ -50,7 +55,8 @@ def get_llm(streaming: bool = False):
 
 def build_user_index(user_id: str, transactions: list[dict]):
     """
-    Builds a FAISS index from the user's transactions and stores it in memory.
+    Builds an in-memory FAISS vector store for a specific user's transactions.
+    If no transactions exist, builds an empty index as a fallback.
     """
     if not transactions:
         # Create an empty index if no transactions
@@ -60,9 +66,12 @@ def build_user_index(user_id: str, transactions: list[dict]):
             return
         try:
             user_vector_stores[str(user_id)] = FAISS.from_texts(["No transaction data available yet."], embed_model)
+            if str(user_id) in user_vector_errors:
+                del user_vector_errors[str(user_id)]
         except Exception as e:
             print(f"Failed to build empty FAISS index: {e}")
             user_vector_stores[str(user_id)] = None
+            user_vector_errors[str(user_id)] = str(e)
         return
 
     docs = []
@@ -97,10 +106,13 @@ def build_user_index(user_id: str, transactions: list[dict]):
     try:
         vector_store = FAISS.from_texts(texts=docs, embedding=embed_model, metadatas=metadatas)
         user_vector_stores[str(user_id)] = vector_store
+        if str(user_id) in user_vector_errors:
+            del user_vector_errors[str(user_id)]
     except Exception as e:
         print(f"Failed to build FAISS index: {e}")
         # Build an empty/fallback index so we don't crash next time
         user_vector_stores[str(user_id)] = None
+        user_vector_errors[str(user_id)] = str(e)
 
 
 def get_user_index(user_id: str) -> FAISS | None:
