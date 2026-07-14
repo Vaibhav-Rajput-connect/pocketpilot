@@ -38,28 +38,22 @@ class BaseParser(ABC):
 # ── Column name fuzzy matching ──
 
 DATE_PATTERNS = re.compile(
-    r"^(date|txn[\s_]?date|transaction[\s_]?date|value[\s_]?date|posting[\s_]?date|date[\s_]?of[\s_]?transaction|txndate|val[\s_]?date|d/m/y)$",
-    re.IGNORECASE,
+    r"(?i)\b(date|d/m/y)\b",
 )
 DESC_PATTERNS = re.compile(
-    r"^(description|narration|particulars|details|remarks|transaction[\s_]?details|memo|desc|transaction[\s_]?remarks|chq/ref[\s_]?no\.|ref[\s_]?no)$",
-    re.IGNORECASE,
+    r"(?i)\b(description|narration|particulars|details|remarks|memo|desc|ref\s*no|reference|chq)\b",
 )
 DEBIT_PATTERNS = re.compile(
-    r"^(debit|withdrawal|dr|debit[\s_]?amount|withdrawals|paid[\s_]?out|money[\s_]?out|debits)$",
-    re.IGNORECASE,
+    r"(?i)\b(debit|withdrawal|dr|paid\s*out|money\s*out|withdrawn)\b",
 )
 CREDIT_PATTERNS = re.compile(
-    r"^(credit|deposit|cr|credit[\s_]?amount|deposits|paid[\s_]?in|money[\s_]?in|credits)$",
-    re.IGNORECASE,
+    r"(?i)\b(credit|deposit|cr|paid\s*in|money\s*in|lodgement)\b",
 )
 AMOUNT_PATTERNS = re.compile(
-    r"^(amount|transaction[\s_]?amount|total|value|amt|txn[\s_]?amount|amount[\s_]?\(inr\)|amount[\s_]?\(\$\))$",
-    re.IGNORECASE,
+    r"(?i)\b(amount|total|value|amt|balance)\b",
 )
 MERCHANT_PATTERNS = re.compile(
-    r"^(merchant|payee|vendor|beneficiary|paid[\s_]?to|receiver|to|from)$",
-    re.IGNORECASE,
+    r"(?i)\b(merchant|payee|vendor|beneficiary|receiver|to|from)\b",
 )
 
 
@@ -76,17 +70,17 @@ def detect_columns(headers: list[str]) -> dict[str, Optional[int]]:
 
     for idx, header in enumerate(headers):
         h = header.strip()
-        if DATE_PATTERNS.match(h):
+        if DATE_PATTERNS.search(h):
             mapping["date"] = idx
-        elif DESC_PATTERNS.match(h):
+        elif DESC_PATTERNS.search(h):
             mapping["description"] = idx
-        elif DEBIT_PATTERNS.match(h):
+        elif DEBIT_PATTERNS.search(h):
             mapping["debit"] = idx
-        elif CREDIT_PATTERNS.match(h):
+        elif CREDIT_PATTERNS.search(h):
             mapping["credit"] = idx
-        elif AMOUNT_PATTERNS.match(h):
+        elif AMOUNT_PATTERNS.search(h):
             mapping["amount"] = idx
-        elif MERCHANT_PATTERNS.match(h):
+        elif MERCHANT_PATTERNS.search(h):
             mapping["merchant"] = idx
 
     return mapping
