@@ -159,7 +159,8 @@ async def stream_chat_response(user_id: str, query: str, history: list[dict] = N
     vector_store = get_user_index(str(user_id))
     
     if not vector_store:
-        yield "data: Error: I don't have your transactions indexed yet, or your API key is invalid. Please check your Gemini API key and try again.\n\n"
+        error_msg = user_vector_errors.get(str(user_id), "Unknown indexing error.")
+        yield f"data: Error building index: {error_msg}. Please check your API key and try again.\n\n"
         return
         
     # Retrieve top 20 relevant transactions
