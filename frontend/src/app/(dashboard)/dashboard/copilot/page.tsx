@@ -62,8 +62,8 @@ export default function CopilotPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
         },
+        credentials: "include",
         body: requestBody
       });
 
@@ -78,8 +78,8 @@ export default function CopilotPage() {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}`
             },
+            credentials: "include",
             body: requestBody
           });
         } catch (e) {
