@@ -2,22 +2,16 @@
 
 from __future__ import annotations
 import logging
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from typing import Any
-
-import pandas as pd
-from sklearn.ensemble import IsolationForest
-try:
-    from prophet import Prophet
-except ImportError:
-    Prophet = None
+import statistics
 
 logger = logging.getLogger(__name__)
 
 
 def detect_anomalies(transactions: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """
-    Uses Isolation Forest to detect anomalous transaction amounts.
+    Uses the Interquartile Range (IQR) method in pure Python to detect anomalous transaction amounts.
     Only considers debit transactions.
     """
     debits = [t for t in transactions if t.get("transaction_type") == "debit" and t.get("amount", 0) > 0]
@@ -25,108 +19,92 @@ def detect_anomalies(transactions: list[dict[str, Any]]) -> list[dict[str, Any]]
     if len(debits) < 10:
         return []  # Not enough data for meaningful anomaly detection
 
-    # Prepare DataFrame
-    df = pd.DataFrame(debits)
+    # Sort amounts to calculate IQR
+    amounts = sorted([float(t["amount"]) for t in debits])
+    n = len(amounts)
     
-    # We use log of amount to handle large disparities in transaction sizes
-    import numpy as np
-    X = np.log1p(df[['amount']].values)
+    # Calculate Q1, Q3, and IQR
+    q1 = amounts[n // 4]
+    q3 = amounts[(n * 3) // 4]
+    iqr = q3 - q1
     
-    # Train Isolation Forest
-    # contamination=0.05 means we expect ~5% of transactions to be outliers
-    model = IsolationForest(contamination=0.05, random_state=42)
-    df['anomaly'] = model.fit_predict(X)
+    # Define an anomaly as being greater than Q3 + 2.5 * IQR (using 2.5 instead of 1.5 for stricter anomalies)
+    upper_bound = q3 + 2.5 * iqr
     
-    # -1 means anomaly, 1 means normal
-    anomalies = df[df['anomaly'] == -1].copy()
-    
-    # To avoid flagging very small transactions as anomalies, we only flag
-    # if the amount is greater than the median of all transactions.
-    median_amt = df['amount'].median()
-    anomalies = anomalies[anomalies['amount'] > median_amt]
-    
-    # Format for output
-    results = []
-    for _, row in anomalies.iterrows():
-        results.append({
-            "id": row.get("id", ""),
-            "date": row.get("date"),
-            "merchant": row.get("merchant", "Unknown"),
-            "amount": row.get("amount", 0.0),
-            "reason": "Unusually large transaction amount"
-        })
-        
+    # Filter anomalous transactions
+    anomalies = []
+    for t in debits:
+        amt = float(t.get("amount", 0.0))
+        if amt > upper_bound and amt > statistics.median(amounts):
+            anomalies.append({
+                "id": t.get("id", ""),
+                "date": t.get("date"),
+                "merchant": t.get("merchant", "Unknown"),
+                "amount": amt,
+                "reason": "Unusually large transaction amount"
+            })
+            
     # Sort by amount descending
-    results.sort(key=lambda x: x["amount"], reverse=True)
-    return results
+    anomalies.sort(key=lambda x: x["amount"], reverse=True)
+    return anomalies
 
 
 def generate_forecast(transactions: list[dict[str, Any]], months_to_forecast: int = 3) -> dict[str, Any]:
     """
-    Uses Prophet to forecast future expenses based on historical data.
-    Groups data by week to smooth noise.
+    Uses simple pure Python statistics to forecast future expenses based on historical weekly averages.
     """
-    if Prophet is None:
-        logger.warning("Prophet is not installed. Forecasting disabled.")
-        return {"historical": [], "forecast": []}
-        
     debits = [t for t in transactions if t.get("transaction_type") == "debit"]
     if len(debits) < 14:
-        # Not enough data for meaningful forecasting
         return {"historical": [], "forecast": []}
         
-    df = pd.DataFrame(debits)
-    
-    # Prophet requires 'ds' (datetime) and 'y' (value) columns
-    df['ds'] = pd.to_datetime(df['date'])
-    df['y'] = df['amount']
-    
-    # Group by Week to smooth out daily variance
-    weekly_df = df.resample('W-MON', on='ds').sum().reset_index()
-    weekly_df = weekly_df[['ds', 'y']]
-    
-    # If we have less than 4 weeks of data, Prophet will struggle
-    if len(weekly_df) < 4:
-        return {"historical": [], "forecast": []}
+    # Group amounts by ISO week string (YYYY-WW)
+    weekly_totals = {}
+    for t in debits:
+        dt = datetime.strptime(t.get("date").split("T")[0], "%Y-%m-%d")
+        week_str = f"{dt.year}-W{dt.isocalendar()[1]:02d}"
+        weekly_totals[week_str] = weekly_totals.get(week_str, 0.0) + float(t.get("amount", 0.0))
         
-    # Train Prophet Model
-    model = Prophet(
-        yearly_seasonality=False,
-        weekly_seasonality=True,
-        daily_seasonality=False,
-        changepoint_prior_scale=0.05
-    )
-    # Suppress cmdstanpy logging if possible
-    model.fit(weekly_df)
-    
-    # Predict future weeks (4 weeks per month)
-    future = model.make_future_dataframe(periods=months_to_forecast * 4, freq='W-MON')
-    forecast = model.predict(future)
+    sorted_weeks = sorted(weekly_totals.keys())
     
     # Format Historical (Actuals)
     historical_data = []
-    for _, row in weekly_df.iterrows():
+    for w in sorted_weeks:
+        # Just use the Monday of that week as the date
+        year, week = int(w.split('-W')[0]), int(w.split('-W')[1])
+        # A hacky way to get a date from year and week number in pure python
+        monday = datetime.strptime(f"{year}-W{week}-1", "%G-W%V-%u").strftime("%Y-%m-%d")
         historical_data.append({
-            "date": row['ds'].strftime("%Y-%m-%d"),
-            "actual": round(float(row['y']), 2)
+            "date": monday,
+            "actual": round(weekly_totals[w], 2)
         })
         
-    # Format Forecast
+    # Forecast future weeks (4 weeks per month)
+    num_weeks_to_forecast = months_to_forecast * 4
+    if len(historical_data) == 0:
+         return {"historical": [], "forecast": []}
+         
+    # Calculate simple moving average of the last 4 weeks (or less if not available)
+    recent_totals = [d["actual"] for d in historical_data[-4:]]
+    avg_weekly = statistics.mean(recent_totals) if recent_totals else 0.0
+    
+    # Calculate variance to give upper/lower bounds
+    std_dev = statistics.stdev(recent_totals) if len(recent_totals) > 1 else avg_weekly * 0.1
+    
     forecast_data = []
-    for _, row in forecast.iterrows():
-        # Only include future dates (or very recent ones)
-        if row['ds'] >= weekly_df['ds'].max():
-            # Prophet might predict negative amounts, clamp to 0
-            pred = max(0, float(row['yhat']))
-            lower = max(0, float(row['yhat_lower']))
-            upper = max(0, float(row['yhat_upper']))
-            
-            forecast_data.append({
-                "date": row['ds'].strftime("%Y-%m-%d"),
-                "predicted": round(pred, 2),
-                "lower_bound": round(lower, 2),
-                "upper_bound": round(upper, 2)
-            })
+    last_date = datetime.strptime(historical_data[-1]["date"], "%Y-%m-%d")
+    
+    for i in range(1, num_weeks_to_forecast + 1):
+        next_date = (last_date + timedelta(weeks=i)).strftime("%Y-%m-%d")
+        pred = avg_weekly
+        lower = max(0.0, pred - std_dev)
+        upper = pred + std_dev
+        
+        forecast_data.append({
+            "date": next_date,
+            "predicted": round(pred, 2),
+            "lower_bound": round(lower, 2),
+            "upper_bound": round(upper, 2)
+        })
             
     return {
         "historical": historical_data,
