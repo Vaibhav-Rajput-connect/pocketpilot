@@ -70,17 +70,17 @@ def detect_columns(headers: list[str]) -> dict[str, Optional[int]]:
 
     for idx, header in enumerate(headers):
         h = header.strip()
-        if DATE_PATTERNS.search(h):
+        if mapping["date"] is None and DATE_PATTERNS.search(h):
             mapping["date"] = idx
-        elif DESC_PATTERNS.search(h):
+        elif mapping["description"] is None and DESC_PATTERNS.search(h):
             mapping["description"] = idx
-        elif DEBIT_PATTERNS.search(h):
+        elif mapping["debit"] is None and DEBIT_PATTERNS.search(h):
             mapping["debit"] = idx
-        elif CREDIT_PATTERNS.search(h):
+        elif mapping["credit"] is None and CREDIT_PATTERNS.search(h):
             mapping["credit"] = idx
-        elif AMOUNT_PATTERNS.search(h):
+        elif mapping["amount"] is None and AMOUNT_PATTERNS.search(h):
             mapping["amount"] = idx
-        elif MERCHANT_PATTERNS.search(h):
+        elif mapping["merchant"] is None and MERCHANT_PATTERNS.search(h):
             mapping["merchant"] = idx
 
     return mapping
@@ -89,6 +89,16 @@ def detect_columns(headers: list[str]) -> dict[str, Optional[int]]:
 def parse_date(value: str) -> Optional[date]:
     """Try multiple date formats to parse a date string."""
     value = value.strip()
+    if not value:
+        return None
+        
+    # Check for Excel serial dates (e.g. 44378 or 44378.0)
+    if value.replace(".", "").isdigit():
+        val_float = float(value)
+        if 30000 < val_float < 70000:
+            from datetime import timedelta
+            return (datetime(1899, 12, 30) + timedelta(days=val_float)).date()
+
     formats = [
         "%Y-%m-%d",
         "%d-%m-%Y",
@@ -190,29 +200,39 @@ def rows_to_transactions(
         amount: Optional[float] = None
         txn_type = "debit"
 
-        if debit_idx is not None and credit_idx is not None:
-            debit_val = clean_amount(row[debit_idx]) if debit_idx < len(row) else None
-            credit_val = clean_amount(row[credit_idx]) if credit_idx < len(row) else None
-            if debit_val and debit_val > 0:
-                amount = debit_val
-                txn_type = "debit"
-            elif credit_val and credit_val > 0:
-                amount = credit_val
-                txn_type = "credit"
-        elif amount_idx is not None and amount_idx < len(row):
+        # Try to extract from debit column
+        debit_val = None
+        if debit_idx is not None and debit_idx < len(row):
+            debit_val = clean_amount(row[debit_idx])
+            
+        # Try to extract from credit column
+        credit_val = None
+        if credit_idx is not None and credit_idx < len(row):
+            credit_val = clean_amount(row[credit_idx])
+
+        # Try to extract from general amount column
+        amount_val = None
+        if amount_idx is not None and amount_idx < len(row):
+            amount_val = clean_amount(row[amount_idx])
+
+        if debit_val and debit_val > 0:
+            amount = debit_val
+            txn_type = "debit"
+        elif credit_val and credit_val > 0:
+            amount = credit_val
+            txn_type = "credit"
+        elif amount_val is not None:
+            # Check negative amounts for debits
             raw_amount = str(row[amount_idx]).strip()
-            parsed = clean_amount(raw_amount)
-            if parsed is not None:
-                # Negative amounts are debits
-                original = re.sub(r"[₹$€£,\s()]", "", raw_amount)
-                try:
-                    if float(original) < 0:
-                        txn_type = "debit"
-                    else:
-                        txn_type = "credit"
-                except ValueError:
+            original = re.sub(r"[₹$€£,\s()]", "", raw_amount)
+            try:
+                if float(original) < 0:
                     txn_type = "debit"
-                amount = parsed
+                else:
+                    txn_type = "credit"
+            except ValueError:
+                txn_type = "debit"
+            amount = amount_val
 
         if amount is None or amount == 0:
             continue
