@@ -102,8 +102,12 @@ def parse_date(value: str) -> Optional[date]:
         "%d %B %Y",
         "%m-%d-%Y",
         "%Y-%m-%dT%H:%M:%S",
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%d %H:%M:%S.%f",
         "%d/%m/%y",
         "%d-%m-%y",
+        "%d %b %y",
+        "%d %b, %y",
     ]
     for fmt in formats:
         try:
@@ -122,15 +126,21 @@ def clean_amount(value: str | float | int | None) -> Optional[float]:
     s = str(value).strip()
     if not s or s == "-" or s.lower() == "nan":
         return None
-    # Remove currency symbols and commas
+    # Remove currency symbols, commas, and trailing Dr/Cr
     s = re.sub(r"[₹$€£,\s]", "", s)
+    s = re.sub(r"(?i)(dr|cr)\.?$", "", s)
     # Handle parentheses as negative
     if s.startswith("(") and s.endswith(")"):
         s = "-" + s[1:-1]
     try:
         return abs(float(s))
     except ValueError:
-        return None
+        # Fallback: aggressive strip of anything except digits, minus, and period
+        s = re.sub(r"[^\d\.-]", "", s)
+        try:
+            return abs(float(s))
+        except ValueError:
+            return None
 
 
 def clean_text(value: str | None) -> str:
