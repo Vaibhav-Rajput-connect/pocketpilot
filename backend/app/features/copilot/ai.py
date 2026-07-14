@@ -27,7 +27,7 @@ def get_embeddings():
         try:
             if settings.gemini_api_key:
                 _embeddings = GoogleGenerativeAIEmbeddings(
-                    model="models/text-embedding-004",
+                    model="gemini-embedding-001",
                     google_api_key=settings.gemini_api_key
                 )
             else:
