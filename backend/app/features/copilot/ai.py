@@ -3,9 +3,8 @@ import uuid
 from typing import AsyncGenerator
 from fastapi import BackgroundTasks
 from langchain_community.vectorstores import FAISS
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 
 from app.config import settings
@@ -21,7 +20,14 @@ def get_embeddings():
     global _embeddings
     if _embeddings is None:
         try:
-            _embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+            if settings.gemini_api_key:
+                _embeddings = GoogleGenerativeAIEmbeddings(
+                    model="models/embedding-001",
+                    google_api_key=settings.gemini_api_key
+                )
+            else:
+                print("Failed to initialize embeddings: GEMINI_API_KEY is not configured in .env")
+                _embeddings = None
         except Exception as e:
             print(f"Failed to initialize embeddings: {e}")
             _embeddings = None
