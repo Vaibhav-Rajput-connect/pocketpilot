@@ -144,10 +144,18 @@ async def stream_chat_response(user_id: str, query: str, history: list[dict] = N
         return
         
     # Retrieve top 20 relevant transactions
-    retriever = vector_store.as_retriever(search_kwargs={"k": 20})
-    docs = retriever.invoke(query)
-    
-    context_text = "\n".join([d.page_content for d in docs])
+    try:
+        retriever = vector_store.as_retriever(search_kwargs={"k": 20})
+        # This calls the embedding API synchronously which can fail!
+        docs = retriever.invoke(query)
+        context_text = "\n".join([d.page_content for d in docs])
+    except Exception as e:
+        import json
+        clean_msg = f"\n\nError connecting to Gemini Embeddings API: {str(e)}. Please check your API key and rate limits."
+        data = json.dumps({"text": clean_msg})
+        yield f"data: {data}\n\n"
+        yield "data: [DONE]\n\n"
+        return
     
     # Check if LLM is configured
     try:
