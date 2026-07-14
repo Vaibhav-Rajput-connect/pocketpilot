@@ -12,4 +12,4 @@ services:
         value: prod
       - key: PORT
         value: "10000"
-    dockerCommand: "bash start.sh"
+
