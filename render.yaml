@@ -3,7 +3,7 @@ services:
     name: pocketpilot-backend
     env: docker
     region: ohio
-    plan: starter
+    plan: free
     rootDir: backend
     dockerfilePath: Dockerfile
     healthCheckPath: /health
