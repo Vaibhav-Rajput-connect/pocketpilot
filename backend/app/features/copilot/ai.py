@@ -40,7 +40,7 @@ def get_llm(streaming: bool = False):
     """
     if settings.gemini_api_key:
         return ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash",
+            model="gemini-1.5-flash",
             google_api_key=settings.gemini_api_key,
             temperature=0.2,
             streaming=streaming
@@ -58,7 +58,11 @@ def build_user_index(user_id: str, transactions: list[dict]):
         if not embed_model:
             print("Warning: Embeddings model not available, using empty FAISS fallback")
             return
-        user_vector_stores[str(user_id)] = FAISS.from_texts(["No transaction data available yet."], embed_model)
+        try:
+            user_vector_stores[str(user_id)] = FAISS.from_texts(["No transaction data available yet."], embed_model)
+        except Exception as e:
+            print(f"Failed to build empty FAISS index: {e}")
+            user_vector_stores[str(user_id)] = None
         return
 
     docs = []
@@ -90,8 +94,13 @@ def build_user_index(user_id: str, transactions: list[dict]):
     if not embed_model:
         print("Warning: Embeddings model not available, skipping FAISS build")
         return
-    vector_store = FAISS.from_texts(texts=docs, embedding=embed_model, metadatas=metadatas)
-    user_vector_stores[str(user_id)] = vector_store
+    try:
+        vector_store = FAISS.from_texts(texts=docs, embedding=embed_model, metadatas=metadatas)
+        user_vector_stores[str(user_id)] = vector_store
+    except Exception as e:
+        print(f"Failed to build FAISS index: {e}")
+        # Build an empty/fallback index so we don't crash next time
+        user_vector_stores[str(user_id)] = None
 
 
 def get_user_index(user_id: str) -> FAISS | None:
