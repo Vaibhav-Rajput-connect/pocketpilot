@@ -137,10 +137,17 @@ async def stream_chat_response(user_id: str, query: str, history: list[dict] = N
     Retrieves relevant transactions, queries the LLM, and streams the response chunks.
     Yields chunks formatted for Server-Sent Events (SSE).
     """
+    # Check if LLM is configured first
+    try:
+        llm = get_llm(streaming=True)
+    except ValueError as e:
+        yield f"data: Configuration Error: {str(e)}. Please add your Gemini API Key in the backend .env file.\n\n"
+        return
+
     vector_store = get_user_index(str(user_id))
     
     if not vector_store:
-        yield "data: I don't have your transactions indexed yet. Please refresh the page.\n\n"
+        yield "data: Error: I don't have your transactions indexed yet, or your API key is invalid. Please check your Gemini API key and try again.\n\n"
         return
         
     # Retrieve top 20 relevant transactions
@@ -157,13 +164,6 @@ async def stream_chat_response(user_id: str, query: str, history: list[dict] = N
         yield "data: [DONE]\n\n"
         return
     
-    # Check if LLM is configured
-    try:
-        llm = get_llm(streaming=True)
-    except ValueError as e:
-        yield f"data: Configuration Error: {str(e)}. Please add your Gemini API Key in the backend .env file.\n\n"
-        return
-
     # Build the full prompt
     final_prompt = prompt_template.format(
         summary_context=summary_context,
