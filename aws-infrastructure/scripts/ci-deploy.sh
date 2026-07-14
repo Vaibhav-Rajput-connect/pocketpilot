@@ -92,8 +92,11 @@ done
 
 # 6. Automated Rollback Trigger
 if [ "$HEALTHY" = false ]; then
-    echo "❌ CRITICAL: Health check FAILED after 60 seconds."
-    echo "⚠️ INITIATING EMERGENCY ROLLBACK..."
+        echo "❌ CRITICAL: Health check FAILED after 60 seconds."
+        echo "================= DOCKER LOGS ================="
+        docker logs pocketpilot-backend --tail 100
+        echo "==============================================="
+        echo "⚠️ INITIATING EMERGENCY ROLLBACK..."
     
     if docker image inspect $ECR_REPO:rollback-backup >/dev/null 2>&1; then
         echo "Restoring previous working image..."
