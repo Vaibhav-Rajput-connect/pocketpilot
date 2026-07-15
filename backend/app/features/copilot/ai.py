@@ -1,11 +1,12 @@
 import os
-import uuid
+import json
 from typing import AsyncGenerator
 from fastapi import BackgroundTasks
 from langchain_community.vectorstores import FAISS
-from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
+from langchain_core.embeddings import Embeddings
+from google import genai
 
 from app.config import settings
 
@@ -14,8 +15,62 @@ from app.config import settings
 user_vector_stores: dict[str, FAISS] = {}
 user_vector_errors: dict[str, str] = {}
 
-# Lazy initialization for the embeddings model to prevent import-time download/errors
+# Lazy initialization for the genai client
+_genai_client = None
 _embeddings = None
+
+EMBEDDING_MODEL = "gemini-embedding-001"
+CHAT_MODEL = "gemini-2.0-flash"
+
+
+def get_genai_client():
+    """Gets or creates the google-genai client."""
+    global _genai_client
+    if _genai_client is None:
+        if settings.gemini_api_key:
+            _genai_client = genai.Client(api_key=settings.gemini_api_key)
+        else:
+            print("Failed to initialize genai client: GEMINI_API_KEY is not configured in .env")
+    return _genai_client
+
+
+class GenAIEmbeddings(Embeddings):
+    """Custom LangChain Embeddings wrapper using google-genai SDK."""
+
+    def __init__(self):
+        super().__init__()
+
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        """Embed a list of documents using google-genai SDK."""
+        client = get_genai_client()
+        if not client:
+            raise ValueError("Gemini API client not initialized")
+        
+        all_embeddings = []
+        # Process in batches of 100 (API limit)
+        batch_size = 100
+        for i in range(0, len(texts), batch_size):
+            batch = texts[i:i + batch_size]
+            result = client.models.embed_content(
+                model=EMBEDDING_MODEL,
+                contents=batch
+            )
+            for embedding in result.embeddings:
+                all_embeddings.append(embedding.values)
+        return all_embeddings
+
+    def embed_query(self, text: str) -> list[float]:
+        """Embed a single query using google-genai SDK."""
+        client = get_genai_client()
+        if not client:
+            raise ValueError("Gemini API client not initialized")
+        
+        result = client.models.embed_content(
+            model=EMBEDDING_MODEL,
+            contents=text
+        )
+        return result.embeddings[0].values
+
 
 def get_embeddings():
     """
@@ -26,10 +81,7 @@ def get_embeddings():
     if _embeddings is None:
         try:
             if settings.gemini_api_key:
-                _embeddings = GoogleGenerativeAIEmbeddings(
-                    model="gemini-embedding-001",
-                    google_api_key=settings.gemini_api_key
-                )
+                _embeddings = GenAIEmbeddings()
             else:
                 print("Failed to initialize embeddings: GEMINI_API_KEY is not configured in .env")
                 _embeddings = None
@@ -38,20 +90,6 @@ def get_embeddings():
             _embeddings = None
     return _embeddings
 
-def get_llm(streaming: bool = False):
-    """
-    Initializes the LLM based on environment configuration.
-    Defaults to Gemini if configured, otherwise fails gracefully.
-    """
-    if settings.gemini_api_key:
-        return ChatGoogleGenerativeAI(
-            model="gemini-pro",
-            google_api_key=settings.gemini_api_key,
-            temperature=0.2,
-            streaming=streaming
-        )
-    # If no key is set, we could raise an error or return a mock for testing
-    raise ValueError("GEMINI_API_KEY is not configured in .env")
 
 def build_user_index(user_id: str, transactions: list[dict]):
     """
@@ -152,11 +190,10 @@ async def stream_chat_response(user_id: str, query: str, history: list[dict] = N
     Retrieves relevant transactions, queries the LLM, and streams the response chunks.
     Yields chunks formatted for Server-Sent Events (SSE).
     """
-    # Check if LLM is configured first
-    try:
-        llm = get_llm(streaming=True)
-    except ValueError as e:
-        yield f"data: Configuration Error: {str(e)}. Please add your Gemini API Key in the backend .env file.\n\n"
+    # Check if client is configured first
+    client = get_genai_client()
+    if not client:
+        yield f"data: Configuration Error: GEMINI_API_KEY is not configured in .env. Please add your Gemini API Key in the backend environment variables.\n\n"
         return
 
     vector_store = get_user_index(str(user_id))
@@ -173,7 +210,6 @@ async def stream_chat_response(user_id: str, query: str, history: list[dict] = N
         docs = retriever.invoke(query)
         context_text = "\n".join([d.page_content for d in docs])
     except Exception as e:
-        import json
         clean_msg = f"\n\nError connecting to Gemini Embeddings API: {str(e)}. Please check your API key and rate limits."
         data = json.dumps({"text": clean_msg})
         yield f"data: {data}\n\n"
@@ -187,31 +223,33 @@ async def stream_chat_response(user_id: str, query: str, history: list[dict] = N
         question=query
     )
     
-    # Support conversation history
-    messages = []
+    # Build conversation contents for google-genai
+    contents = []
     if history:
         for msg in history:
             if msg["role"] == "user":
-                messages.append(HumanMessage(content=msg["content"]))
+                contents.append({"role": "user", "parts": [{"text": msg["content"]}]})
             elif msg["role"] == "assistant":
-                messages.append(AIMessage(content=msg["content"]))
+                contents.append({"role": "model", "parts": [{"text": msg["content"]}]})
                 
     # Add the current prompt
-    messages.append(HumanMessage(content=final_prompt))
+    contents.append({"role": "user", "parts": [{"text": final_prompt}]})
     
-    # Stream the response
+    # Stream the response using google-genai
     try:
-        async for chunk in llm.astream(messages):
-            if chunk.content:
-                # Replace newlines with a specific token or just yield raw content if client handles it
-                # For SSE, sending raw text per chunk is usually fine if client concatenates.
-                # To be safe with SSE parsing, we can send JSON-encoded chunks or just replace newlines.
-                import json
-                data = json.dumps({"text": chunk.content})
+        response_stream = client.models.generate_content_stream(
+            model=CHAT_MODEL,
+            contents=contents,
+            config={
+                "temperature": 0.2,
+            }
+        )
+        for chunk in response_stream:
+            if chunk.text:
+                data = json.dumps({"text": chunk.text})
                 yield f"data: {data}\n\n"
                 
     except Exception as e:
-        import json
         error_msg = str(e)
         if "API_KEY_INVALID" in error_msg or "API key not valid" in error_msg:
             clean_msg = "\n\nError: The Gemini API Key is invalid or missing. Please provide a valid API key in the backend environment variables."
