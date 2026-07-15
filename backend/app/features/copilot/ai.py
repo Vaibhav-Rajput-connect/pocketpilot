@@ -28,7 +28,7 @@ def get_embeddings():
             if settings.openai_api_key:
                 _embeddings = OpenAIEmbeddings(
                     model="text-embedding-3-small",
-                    openai_api_key=settings.openai_api_key
+                    api_key=settings.openai_api_key
                 )
             else:
                 print("Failed to initialize embeddings: OPENAI_API_KEY is not configured in .env")
@@ -46,7 +46,7 @@ def get_llm(streaming: bool = False):
     if settings.openai_api_key:
         return ChatOpenAI(
             model="gpt-4o-mini",
-            openai_api_key=settings.openai_api_key,
+            api_key=settings.openai_api_key,
             temperature=0.2,
             streaming=streaming
         )
