@@ -3,10 +3,9 @@ import json
 from typing import AsyncGenerator
 from fastapi import BackgroundTasks
 from langchain_community.vectorstores import FAISS
+from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
-from langchain_core.embeddings import Embeddings
-from google import genai
 
 from app.config import settings
 
@@ -15,81 +14,44 @@ from app.config import settings
 user_vector_stores: dict[str, FAISS] = {}
 user_vector_errors: dict[str, str] = {}
 
-# Lazy initialization for the genai client
-_genai_client = None
+# Lazy initialization for the embeddings model to prevent import-time download/errors
 _embeddings = None
-
-EMBEDDING_MODEL = "gemini-embedding-001"
-CHAT_MODEL = "gemini-2.0-flash"
-
-
-def get_genai_client():
-    """Gets or creates the google-genai client."""
-    global _genai_client
-    if _genai_client is None:
-        if settings.gemini_api_key:
-            _genai_client = genai.Client(api_key=settings.gemini_api_key)
-        else:
-            print("Failed to initialize genai client: GEMINI_API_KEY is not configured in .env")
-    return _genai_client
-
-
-class GenAIEmbeddings(Embeddings):
-    """Custom LangChain Embeddings wrapper using google-genai SDK."""
-
-    def __init__(self):
-        super().__init__()
-
-    def embed_documents(self, texts: list[str]) -> list[list[float]]:
-        """Embed a list of documents using google-genai SDK."""
-        client = get_genai_client()
-        if not client:
-            raise ValueError("Gemini API client not initialized")
-        
-        all_embeddings = []
-        # Process in batches of 100 (API limit)
-        batch_size = 100
-        for i in range(0, len(texts), batch_size):
-            batch = texts[i:i + batch_size]
-            result = client.models.embed_content(
-                model=EMBEDDING_MODEL,
-                contents=batch
-            )
-            for embedding in result.embeddings:
-                all_embeddings.append(embedding.values)
-        return all_embeddings
-
-    def embed_query(self, text: str) -> list[float]:
-        """Embed a single query using google-genai SDK."""
-        client = get_genai_client()
-        if not client:
-            raise ValueError("Gemini API client not initialized")
-        
-        result = client.models.embed_content(
-            model=EMBEDDING_MODEL,
-            contents=text
-        )
-        return result.embeddings[0].values
-
 
 def get_embeddings():
     """
     Initializes the embedding model based on environment configuration.
-    Defaults to Gemini if configured, otherwise fails gracefully.
+    Uses OpenAI text-embedding-3-small for cost-effective embeddings.
     """
     global _embeddings
     if _embeddings is None:
         try:
-            if settings.gemini_api_key:
-                _embeddings = GenAIEmbeddings()
+            if settings.openai_api_key:
+                _embeddings = OpenAIEmbeddings(
+                    model="text-embedding-3-small",
+                    openai_api_key=settings.openai_api_key
+                )
             else:
-                print("Failed to initialize embeddings: GEMINI_API_KEY is not configured in .env")
+                print("Failed to initialize embeddings: OPENAI_API_KEY is not configured in .env")
                 _embeddings = None
         except Exception as e:
             print(f"Failed to initialize embeddings: {e}")
             _embeddings = None
     return _embeddings
 
+def get_llm(streaming: bool = False):
+    """
+    Initializes the LLM based on environment configuration.
+    Uses OpenAI GPT-4o-mini for cost-effective chat.
+    """
+    if settings.openai_api_key:
+        return ChatOpenAI(
+            model="gpt-4o-mini",
+            openai_api_key=settings.openai_api_key,
+            temperature=0.2,
+            streaming=streaming
+        )
+    # If no key is set, we could raise an error or return a mock for testing
+    raise ValueError("OPENAI_API_KEY is not configured in .env")
 
 def build_user_index(user_id: str, transactions: list[dict]):
     """
@@ -115,7 +77,7 @@ def build_user_index(user_id: str, transactions: list[dict]):
     docs = []
     metadatas = []
     
-    # Chunk transactions into groups of 20 to avoid hitting the 100 RPM Gemini API limit
+    # Chunk transactions into groups of 20
     chunk_size = 20
     for i in range(0, len(transactions), chunk_size):
         chunk = transactions[i:i + chunk_size]
@@ -190,10 +152,11 @@ async def stream_chat_response(user_id: str, query: str, history: list[dict] = N
     Retrieves relevant transactions, queries the LLM, and streams the response chunks.
     Yields chunks formatted for Server-Sent Events (SSE).
     """
-    # Check if client is configured first
-    client = get_genai_client()
-    if not client:
-        yield f"data: Configuration Error: GEMINI_API_KEY is not configured in .env. Please add your Gemini API Key in the backend environment variables.\n\n"
+    # Check if LLM is configured first
+    try:
+        llm = get_llm(streaming=True)
+    except ValueError as e:
+        yield f"data: Configuration Error: {str(e)}. Please add your OpenAI API Key in the backend .env file.\n\n"
         return
 
     vector_store = get_user_index(str(user_id))
@@ -210,7 +173,7 @@ async def stream_chat_response(user_id: str, query: str, history: list[dict] = N
         docs = retriever.invoke(query)
         context_text = "\n".join([d.page_content for d in docs])
     except Exception as e:
-        clean_msg = f"\n\nError connecting to Gemini Embeddings API: {str(e)}. Please check your API key and rate limits."
+        clean_msg = f"\n\nError connecting to OpenAI Embeddings API: {str(e)}. Please check your API key and rate limits."
         data = json.dumps({"text": clean_msg})
         yield f"data: {data}\n\n"
         yield "data: [DONE]\n\n"
@@ -223,36 +186,29 @@ async def stream_chat_response(user_id: str, query: str, history: list[dict] = N
         question=query
     )
     
-    # Build conversation contents for google-genai
-    contents = []
+    # Support conversation history
+    messages = []
     if history:
         for msg in history:
             if msg["role"] == "user":
-                contents.append({"role": "user", "parts": [{"text": msg["content"]}]})
+                messages.append(HumanMessage(content=msg["content"]))
             elif msg["role"] == "assistant":
-                contents.append({"role": "model", "parts": [{"text": msg["content"]}]})
+                messages.append(AIMessage(content=msg["content"]))
                 
     # Add the current prompt
-    contents.append({"role": "user", "parts": [{"text": final_prompt}]})
+    messages.append(HumanMessage(content=final_prompt))
     
-    # Stream the response using google-genai
+    # Stream the response
     try:
-        response_stream = client.models.generate_content_stream(
-            model=CHAT_MODEL,
-            contents=contents,
-            config={
-                "temperature": 0.2,
-            }
-        )
-        for chunk in response_stream:
-            if chunk.text:
-                data = json.dumps({"text": chunk.text})
+        async for chunk in llm.astream(messages):
+            if chunk.content:
+                data = json.dumps({"text": chunk.content})
                 yield f"data: {data}\n\n"
                 
     except Exception as e:
         error_msg = str(e)
-        if "API_KEY_INVALID" in error_msg or "API key not valid" in error_msg:
-            clean_msg = "\n\nError: The Gemini API Key is invalid or missing. Please provide a valid API key in the backend environment variables."
+        if "invalid_api_key" in error_msg or "Incorrect API key" in error_msg:
+            clean_msg = "\n\nError: The OpenAI API Key is invalid or missing. Please provide a valid API key in the backend environment variables."
         else:
             clean_msg = f"\n\nError generating response: {error_msg}"
             
