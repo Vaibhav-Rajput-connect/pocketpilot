@@ -204,7 +204,19 @@ async def stream_chat_response(user_id: str, query: str, history: list[dict] = N
     try:
         async for chunk in llm.astream(messages):
             if chunk.content:
-                data = json.dumps({"text": chunk.content})
+                text_chunk = chunk.content
+                if isinstance(text_chunk, list):
+                    parts = []
+                    for block in text_chunk:
+                        if isinstance(block, str):
+                            parts.append(block)
+                        elif isinstance(block, dict) and "text" in block:
+                            parts.append(block["text"])
+                    text_chunk = "".join(parts)
+                elif not isinstance(text_chunk, str):
+                    text_chunk = str(text_chunk)
+                    
+                data = json.dumps({"text": text_chunk})
                 yield f"data: {data}\n\n"
                 
     except Exception as e:
