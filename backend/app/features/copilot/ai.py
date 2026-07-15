@@ -47,7 +47,7 @@ def get_llm(streaming: bool = False):
     """
     if settings.gemini_api_key:
         return ChatGoogleGenerativeAI(
-            model="gemini-1.5-flash",
+            model="gemini-2.5-flash",
             google_api_key=settings.gemini_api_key,
             temperature=0.2,
             streaming=streaming
