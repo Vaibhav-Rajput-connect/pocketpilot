@@ -35,6 +35,6 @@ class Settings(BaseSettings):
     backend_port: int = 8000
     
     # LLM APIs
-    gemini_api_key: str | None = None
+    openai_api_key: str | None = None
 
 settings = Settings()

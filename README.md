@@ -32,7 +32,7 @@ PocketPilot is built using a modern, scalable, and highly performant stack:
 
 - **Frontend**: Next.js (App Router), React 19, TypeScript, Tailwind CSS, Framer Motion, Shadcn UI.
 - **Backend**: FastAPI (Python), SQLAlchemy (Async), PostgreSQL, Redis.
-- **AI/ML**: Google Gemini (gemini-1.5-flash) and Google GenAI Embeddings via LangChain, FAISS (Vector Store), Facebook Prophet (Forecasting), Scikit-Learn (Anomaly Detection).
+- **AI/ML**: OpenAI (LLM & Embeddings), LangChain, FAISS (Vector Store), Facebook Prophet (Forecasting), Scikit-Learn (Anomaly Detection).
 - **Infrastructure**: Vercel (Frontend), Render (Backend), Neon (PostgreSQL Database).
 
 ### Folder Structure
@@ -89,11 +89,9 @@ Create a `.env` file in both the `frontend` and `backend` directories.
 **Backend (`backend/.env`):**
 ```env
 DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/pocketpilot
-DATABASE_URL_SYNC=postgresql://pocketpilot:...
-REDIS_URL=redis://localhost:6379
-JWT_SECRET_KEY=your-super-secret-key-change-in-production-min-32-chars!!
-GEMINI_API_KEY=AIzaSyYourFreeGeminiKeyHere
-CORS_ORIGINS=["http://localhost:3000","https://pocketpilot-fin.vercel.app"]
+REDIS_URL=redis://localhost:6379/0
+JWT_SECRET_KEY=your_super_secret_key
+OPENAI_API_KEY=your_openai_api_key
 ```
 
 **Frontend (`frontend/.env.local`):**

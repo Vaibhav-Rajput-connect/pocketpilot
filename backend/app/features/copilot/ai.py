@@ -3,7 +3,7 @@ import logging
 from typing import AsyncGenerator
 from fastapi import BackgroundTasks
 from langchain_community.vectorstores import FAISS
-from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
+from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 
@@ -22,18 +22,18 @@ _embeddings = None
 def get_embeddings():
     """
     Initializes the embedding model based on environment configuration.
-    Uses Google embedding-001 for cost-effective embeddings.
+    Uses OpenAI text-embedding-3-small for cost-effective embeddings.
     """
     global _embeddings
     if _embeddings is None:
         try:
-            if settings.gemini_api_key:
-                _embeddings = GoogleGenerativeAIEmbeddings(
-                    model="models/embedding-001",
-                    google_api_key=settings.gemini_api_key
+            if settings.openai_api_key:
+                _embeddings = OpenAIEmbeddings(
+                    model="text-embedding-3-small",
+                    api_key=settings.openai_api_key
                 )
             else:
-                logger.warning("Embeddings not initialized: GEMINI_API_KEY is not configured")
+                logger.warning("Embeddings not initialized: OPENAI_API_KEY is not configured")
                 _embeddings = None
         except Exception as e:
             logger.error("Failed to initialize embeddings: %s", e)
@@ -43,17 +43,17 @@ def get_embeddings():
 def get_llm(streaming: bool = False):
     """
     Initializes the LLM based on environment configuration.
-    Uses Google Gemini 1.5 Flash for cost-effective chat.
+    Uses OpenAI GPT-4o-mini for cost-effective chat.
     """
-    if settings.gemini_api_key:
-        return ChatGoogleGenerativeAI(
-            model="gemini-1.5-flash",
-            google_api_key=settings.gemini_api_key,
+    if settings.openai_api_key:
+        return ChatOpenAI(
+            model="gpt-4o-mini",
+            api_key=settings.openai_api_key,
             temperature=0.2,
             streaming=streaming
         )
     # If no key is set, we could raise an error or return a mock for testing
-    raise ValueError("GEMINI_API_KEY is not configured in .env")
+    raise ValueError("OPENAI_API_KEY is not configured in .env")
 
 def build_user_index(user_id: str, transactions: list[dict]):
     """
@@ -158,14 +158,14 @@ async def stream_chat_response(user_id: str, query: str, history: list[dict] = N
     try:
         llm = get_llm(streaming=True)
     except ValueError as e:
-        yield f"data: {{\"text\": \"Configuration Error: {str(e)}. Please add your Gemini API Key in the backend .env file.\"}}\n\n"
+        yield f"data: Configuration Error: {str(e)}. Please add your OpenAI API Key in the backend .env file.\n\n"
         return
 
     vector_store = get_user_index(str(user_id))
     
     if not vector_store:
         error_msg = user_vector_errors.get(str(user_id), "Unknown indexing error.")
-        yield f"data: {{\"text\": \"Error building index: {error_msg}. Please check your API key and try again.\"}}\n\n"
+        yield f"data: Error building index: {error_msg}. Please check your API key and try again.\n\n"
         return
         
     # Retrieve top 20 relevant transactions
@@ -175,7 +175,7 @@ async def stream_chat_response(user_id: str, query: str, history: list[dict] = N
         docs = retriever.invoke(query)
         context_text = "\n".join([d.page_content for d in docs])
     except Exception as e:
-        clean_msg = f"\n\nError connecting to Gemini Embeddings API: {str(e)}. Please check your API key and rate limits."
+        clean_msg = f"\n\nError connecting to OpenAI Embeddings API: {str(e)}. Please check your API key and rate limits."
         data = json.dumps({"text": clean_msg})
         yield f"data: {data}\n\n"
         yield "data: [DONE]\n\n"
@@ -209,8 +209,8 @@ async def stream_chat_response(user_id: str, query: str, history: list[dict] = N
                 
     except Exception as e:
         error_msg = str(e)
-        if "invalid_api_key" in error_msg or "Incorrect API key" in error_msg or "API key not valid" in error_msg:
-            clean_msg = "\n\nError: The Gemini API Key is invalid or missing. Please provide a valid API key in the backend environment variables."
+        if "invalid_api_key" in error_msg or "Incorrect API key" in error_msg:
+            clean_msg = "\n\nError: The OpenAI API Key is invalid or missing. Please provide a valid API key in the backend environment variables."
         else:
             clean_msg = f"\n\nError generating response: {error_msg}"
             
