@@ -32,7 +32,7 @@ PocketPilot is built using a modern, scalable, and highly performant stack:
 
 - **Frontend**: Next.js (App Router), React 19, TypeScript, Tailwind CSS, Framer Motion, Shadcn UI.
 - **Backend**: FastAPI (Python), SQLAlchemy (Async), PostgreSQL, Redis.
-- **AI/ML**: Google Gemini (gemini-1.5-flash) and Google GenAI Embeddings via LangChain, FAISS (Vector Store), Facebook Prophet (Forecasting), Scikit-Learn (Anomaly Detection).
+- **AI/ML**: Google Gemini (gemini-3.5-flash) and Google GenAI Embeddings via LangChain, FAISS (Vector Store), Facebook Prophet (Forecasting), Scikit-Learn (Anomaly Detection).
 - **Infrastructure**: Vercel (Frontend), Render (Backend), Neon (PostgreSQL Database).
 
 ### Folder Structure
@@ -57,7 +57,7 @@ pocketpilot/
 
 ### Prerequisites
 - Docker & Docker Compose
-- Node.js (v20+)
+- Node.js (v22+)
 - Python (3.11+)
 
 ### Local Development
@@ -138,10 +138,10 @@ Migrations are fully managed via **Alembic**.
 
 ### RAG Architecture
 The PocketPilot Copilot uses a Retrieval-Augmented Generation (RAG) architecture to answer questions about your specific finances:
-1. **Embedding**: When transactions are uploaded, they are embedded using OpenAI's `text-embedding-3-small` model.
+1. **Embedding**: When transactions are uploaded, they are embedded using Google GenAI Embeddings (e.g. gemini-embedding-2).
 2. **Vector Store**: Embeddings are stored in an in-memory **FAISS** index.
 3. **Retrieval**: User queries are embedded, and the top-k most relevant transactions are retrieved.
-4. **Generation**: The context is fed into **OpenAI (GPT-4o-mini)**, which generates a natural language, highly personalized response.
+4. **Generation**: The context is fed into **Google Gemini (gemini-3.5-flash)**, which generates a natural language, highly personalized response.
 
 ### Machine Learning Pipeline
 - **Forecasting**: We use **Facebook Prophet** to model time-series spending data, accounting for weekly and monthly seasonalities to predict future expenses.
