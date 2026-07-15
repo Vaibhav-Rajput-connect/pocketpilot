@@ -45,10 +45,10 @@ htmlcov/
 .pytest_cache/
 .nyc_output/
 coverage/
+pytest.log
 
 # Misc
 *.log
 *.bak
 *.tmp
 *.pdf
-test_pdf.py

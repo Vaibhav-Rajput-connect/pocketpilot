@@ -24,7 +24,7 @@ graph TD
     end
     
     subgraph "AI & ML Services"
-        Gemini["Google Gemini LLM\n(Parsing & Generation)"]
+        OpenAI["OpenAI LLM\n(Parsing & Generation)"]
         Prophet["Facebook Prophet\n(Forecasting)"]
         IsolationForest["Scikit-Learn\n(Anomaly Detection)"]
     end
@@ -34,60 +34,14 @@ graph TD
     FastAPI -->|AsyncPG| PostgreSQL
     FastAPI -->|aioredis| Redis
     FastAPI -->|Read/Write| FAISS
-    FastAPI -->|API Calls| Gemini
+    FastAPI -->|API Calls| OpenAI
     FastAPI -->|Time-Series Data| Prophet
     FastAPI -->|Tabular Data| IsolationForest
 ```
 
 ---
 
-## 2. AWS Infrastructure
-
-```mermaid
-graph TB
-    Internet((Internet))
-    Route53{"Route 53\n(DNS)"}
-    ALB["Application Load Balancer\n(ACM SSL)"]
-    
-    subgraph "VPC (Virtual Private Cloud)"
-        subgraph "Auto Scaling Group"
-            EC2_1["EC2 Instance 1\n(Docker: Backend)"]
-            EC2_2["EC2 Instance N\n(Docker: Backend)"]
-        end
-        
-        RDS[("AWS RDS\n(PostgreSQL)")]
-        ElastiCache[("AWS ElastiCache\n(Redis)")]
-    end
-    
-    subgraph "AWS Managed Services"
-        ECR{"AWS ECR\n(Docker Registry)"}
-        CloudWatch{"CloudWatch\n(Logs & Metrics)"}
-        SSM{"AWS Systems Manager\n(Deployment)"}
-    end
-
-    Internet --> Route53
-    Route53 --> ALB
-    ALB --> EC2_1
-    ALB --> EC2_2
-    
-    EC2_1 --> RDS
-    EC2_2 --> RDS
-    EC2_1 --> ElastiCache
-    EC2_2 --> ElastiCache
-    
-    EC2_1 -.->|Pulls Image| ECR
-    EC2_2 -.->|Pulls Image| ECR
-    
-    EC2_1 -.->|Pushes Logs| CloudWatch
-    EC2_2 -.->|Pushes Logs| CloudWatch
-    
-    SSM -.->|Triggers Deploy| EC2_1
-    SSM -.->|Triggers Deploy| EC2_2
-```
-
----
-
-## 3. Database ER Diagram
+## 2. Database ER Diagram
 
 ```mermaid
 erDiagram
@@ -128,7 +82,7 @@ erDiagram
 
 ---
 
-## 4. Authentication Flow (OAuth2 with JWT)
+## 3. Authentication Flow (OAuth2 with JWT)
 
 ```mermaid
 sequenceDiagram
@@ -153,14 +107,14 @@ sequenceDiagram
 
 ---
 
-## 5. Transaction Processing Flow (AI Parsing)
+## 4. Transaction Processing Flow (AI Parsing)
 
 ```mermaid
 sequenceDiagram
     participant User
     participant Backend
     participant PDFPlumber
-    participant Gemini as Google Gemini
+    participant OpenAI as OpenAI (GPT)
     participant DB as PostgreSQL
     participant VectorStore as FAISS
     
@@ -168,8 +122,8 @@ sequenceDiagram
     Backend->>PDFPlumber: Extract raw text from PDF
     PDFPlumber-->>Backend: Return raw text string
     
-    Backend->>Gemini: Prompt with raw text & JSON schema
-    Gemini-->>Backend: Return strict JSON array of transactions
+    Backend->>OpenAI: Prompt with raw text & JSON schema
+    OpenAI-->>Backend: Return strict JSON array of transactions
     
     Backend->>DB: Insert transactions
     Backend->>VectorStore: Embed transaction strings & update Index
@@ -178,7 +132,7 @@ sequenceDiagram
 
 ---
 
-## 6. Machine Learning Pipeline (Analytics)
+## 5. Machine Learning Pipeline (Analytics)
 
 ```mermaid
 graph LR
@@ -205,12 +159,12 @@ graph LR
 
 ---
 
-## 7. RAG (Retrieval-Augmented Generation) Pipeline
+## 6. RAG (Retrieval-Augmented Generation) Pipeline
 
 ```mermaid
 flowchart TD
-    Q["User Query: 'How much did I spend on food?'"] --> Embedder["HuggingFace Embeddings\n(all-MiniLM-L6-v2)"]
-    Embedder --> Vector["Dense Vector [384d]"]
+    Q["User Query: 'How much did I spend on food?'"] --> Embedder["OpenAI Embeddings\n(text-embedding-3-small)"]
+    Embedder --> Vector["Dense Vector [1536d]"]
     
     Vector --> FAISS{{"FAISS Vector Search"}}
     Transactions[("Transaction Database\n(Embedded representations)")] --> FAISS
@@ -220,56 +174,50 @@ flowchart TD
     Q --> PromptTemplate
     Context --> PromptTemplate
     
-    PromptTemplate["System Prompt + Query + Context"] --> LLM["Google Gemini Model"]
+    PromptTemplate["System Prompt + Query + Context"] --> LLM["OpenAI GPT Model"]
     LLM --> Answer["Personalized Financial Answer"]
 ```
 
 ---
 
-## 8. CI/CD Deployment Pipeline
+## 7. CI/CD Deployment Pipeline
 
 ```mermaid
 sequenceDiagram
     participant Dev as Developer
     participant GitHub as GitHub Actions
-    participant ECR as AWS ECR
-    participant SSM as AWS Systems Manager
-    participant ASG as Auto Scaling Group (EC2)
+    participant Render as Render Platform
+    participant Vercel as Vercel Platform
 
     Dev->>GitHub: Push to `main` branch
     GitHub->>GitHub: Run `pytest` and `npm test`
-    GitHub->>GitHub: Build Docker Image
-    GitHub->>ECR: Push Image (tag: `latest` & `SHA`)
     
-    GitHub->>SSM: Send-Command `ci-deploy.sh`
-    SSM->>ASG: Execute command on instances
+    GitHub->>Render: Trigger Backend Build
+    Render->>Render: Build Docker Image
+    Render->>Render: Deploy Container
     
-    ASG->>ECR: Pull `latest` Image
-    ASG->>ASG: Restart Docker containers
-    ASG->>ASG: Wait for `/health/ready` probe
-    ASG-->>SSM: Report Success
-    SSM-->>GitHub: Deployment Complete
+    GitHub->>Vercel: Trigger Frontend Build
+    Vercel->>Vercel: Build Next.js App
+    Vercel->>Vercel: Deploy to Edge
 ```
 
 ---
 
-## 9. Docker Architecture (Local Orchestration)
+## 8. Docker Architecture (Local Orchestration)
 
 ```mermaid
 graph TD
     Host["Developer Host Machine"]
     
     subgraph "Docker Compose Network (pocketpilot_network)"
-        Nginx["Nginx Reverse Proxy\n(:80)"]
         Frontend["Next.js Container\n(:3000)"]
         Backend["FastAPI Container\n(:8000)"]
         Postgres[("PostgreSQL Container\n(:5432)")]
         Redis[("Redis Container\n(:6379)")]
     end
     
-    Host -->|HTTP| Nginx
-    Nginx -->|/api/*| Backend
-    Nginx -->|/*| Frontend
+    Host -->|HTTP| Frontend
+    Host -->|HTTP| Backend
     
     Backend --> Postgres
     Backend --> Redis

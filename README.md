@@ -32,8 +32,8 @@ PocketPilot is built using a modern, scalable, and highly performant stack:
 
 - **Frontend**: Next.js (App Router), React 19, TypeScript, Tailwind CSS, Framer Motion, Shadcn UI.
 - **Backend**: FastAPI (Python), SQLAlchemy (Async), PostgreSQL, Redis.
-- **AI/ML**: Google Gemini (LLM), LangChain, HuggingFace (Embeddings), FAISS (Vector Store), Facebook Prophet (Forecasting), Scikit-Learn (Anomaly Detection).
-- **Infrastructure**: Docker, AWS (EC2, Auto Scaling, Application Load Balancer), GitHub Actions (CI/CD).
+- **AI/ML**: OpenAI (LLM & Embeddings), LangChain, FAISS (Vector Store), Facebook Prophet (Forecasting), Scikit-Learn (Anomaly Detection).
+- **Infrastructure**: Vercel (Frontend), Render (Backend), Neon (PostgreSQL Database).
 
 ### Folder Structure
 ```text
@@ -47,9 +47,7 @@ pocketpilot/
 │   ├── tests/                # Pytest suite
 │   ├── alembic/              # Database migrations
 │   └── docs/                 # OpenAPI & Postman specs
-├── aws-infrastructure/       # Deployment & Infrastructure scripts
-│   ├── scripts/              # EC2 setup, CI deployments
-│   └── config/               # Nginx, Docker configs
+├── docs/                     # Documentation & Architecture diagrams
 └── docker-compose.yml        # Local development orchestration
 ```
 
@@ -93,7 +91,7 @@ Create a `.env` file in both the `frontend` and `backend` directories.
 DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/pocketpilot
 REDIS_URL=redis://localhost:6379/0
 JWT_SECRET_KEY=your_super_secret_key
-GEMINI_API_KEY=your_google_gemini_api_key
+OPENAI_API_KEY=your_openai_api_key
 ```
 
 **Frontend (`frontend/.env.local`):**
@@ -113,17 +111,13 @@ docker-compose up --build
 
 ---
 
-## ☁️ AWS Deployment
+## ☁️ Deployment
 
-PocketPilot is engineered for high-availability AWS deployments.
+PocketPilot is engineered for modern cloud deployment:
 
-1. **Compute**: EC2 instances managed by an Auto Scaling Group (ASG).
-2. **Networking**: Traffic is routed through an Application Load Balancer (ALB) with SSL termination via AWS Certificate Manager (ACM).
-3. **Database**: Managed AWS RDS for PostgreSQL.
-4. **Cache**: Managed AWS ElastiCache for Redis.
-5. **Containerization**: The backend runs as a Docker container, pulling images directly from AWS ECR.
-
-*Refer to `aws-infrastructure/scripts/ec2-setup.sh` for the bootstrap script used in the EC2 Launch Template.*
+1. **Frontend**: Deployed on **Vercel** for edge caching and fast global delivery.
+2. **Backend**: Deployed on **Render** using a managed Docker runtime.
+3. **Database**: Managed serverless PostgreSQL on **Neon**.
 
 ---
 
@@ -142,10 +136,10 @@ Migrations are fully managed via **Alembic**.
 
 ### RAG Architecture
 The PocketPilot Copilot uses a Retrieval-Augmented Generation (RAG) architecture to answer questions about your specific finances:
-1. **Embedding**: When transactions are uploaded, they are embedded using HuggingFace's `all-MiniLM-L6-v2` model.
-2. **Vector Store**: Embeddings are stored in an in-memory **FAISS** index (which can be swapped for pgvector).
+1. **Embedding**: When transactions are uploaded, they are embedded using OpenAI's `text-embedding-3-small` model.
+2. **Vector Store**: Embeddings are stored in an in-memory **FAISS** index.
 3. **Retrieval**: User queries are embedded, and the top-k most relevant transactions are retrieved.
-4. **Generation**: The context is fed into **Google Gemini**, which generates a natural language, highly personalized response.
+4. **Generation**: The context is fed into **OpenAI (GPT-4o-mini)**, which generates a natural language, highly personalized response.
 
 ### Machine Learning Pipeline
 - **Forecasting**: We use **Facebook Prophet** to model time-series spending data, accounting for weekly and monthly seasonalities to predict future expenses.
@@ -167,8 +161,8 @@ PocketPilot implements a secure **OAuth2 Password Flow** using JWT (JSON Web Tok
 We use **GitHub Actions** for continuous integration and deployment:
 1. **CI Pipeline**: Runs `pytest` on the backend and `vitest` on the frontend on every pull request.
 2. **CD Pipeline**: 
-   - Builds the backend Docker image and pushes it to AWS ECR.
-   - Uses **AWS Systems Manager (SSM) Run Command** to trigger zero-downtime rolling updates across the EC2 Auto Scaling Group.
+   - Render automatically deploys the backend container on pushes to the `main` branch.
+   - Vercel automatically builds and deploys the frontend.
 
 ---
 

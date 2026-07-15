@@ -1,5 +1,5 @@
-import os
 import json
+import logging
 from typing import AsyncGenerator
 from fastapi import BackgroundTasks
 from langchain_community.vectorstores import FAISS
@@ -8,6 +8,8 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 
 from app.config import settings
+
+logger = logging.getLogger(__name__)
 
 # Global dictionary to store FAISS indices per user (in-memory for this implementation)
 # Key: user_id (str), Value: FAISS vector store
@@ -31,10 +33,10 @@ def get_embeddings():
                     api_key=settings.openai_api_key
                 )
             else:
-                print("Failed to initialize embeddings: OPENAI_API_KEY is not configured in .env")
+                logger.warning("Embeddings not initialized: OPENAI_API_KEY is not configured")
                 _embeddings = None
         except Exception as e:
-            print(f"Failed to initialize embeddings: {e}")
+            logger.error("Failed to initialize embeddings: %s", e)
             _embeddings = None
     return _embeddings
 
@@ -62,14 +64,14 @@ def build_user_index(user_id: str, transactions: list[dict]):
         # Create an empty index if no transactions
         embed_model = get_embeddings()
         if not embed_model:
-            print("Warning: Embeddings model not available, using empty FAISS fallback")
+            logger.warning("Embeddings model not available, using empty FAISS fallback")
             return
         try:
             user_vector_stores[str(user_id)] = FAISS.from_texts(["No transaction data available yet."], embed_model)
             if str(user_id) in user_vector_errors:
                 del user_vector_errors[str(user_id)]
         except Exception as e:
-            print(f"Failed to build empty FAISS index: {e}")
+            logger.error("Failed to build empty FAISS index: %s", e)
             user_vector_stores[str(user_id)] = None
             user_vector_errors[str(user_id)] = str(e)
         return
@@ -104,7 +106,7 @@ def build_user_index(user_id: str, transactions: list[dict]):
     # Build FAISS index
     embed_model = get_embeddings()
     if not embed_model:
-        print("Warning: Embeddings model not available, skipping FAISS build")
+        logger.warning("Embeddings model not available, skipping FAISS build")
         return
     try:
         vector_store = FAISS.from_texts(texts=docs, embedding=embed_model, metadatas=metadatas)
@@ -112,7 +114,7 @@ def build_user_index(user_id: str, transactions: list[dict]):
         if str(user_id) in user_vector_errors:
             del user_vector_errors[str(user_id)]
     except Exception as e:
-        print(f"Failed to build FAISS index: {e}")
+        logger.error("Failed to build FAISS index: %s", e)
         # Build an empty/fallback index so we don't crash next time
         user_vector_stores[str(user_id)] = None
         user_vector_errors[str(user_id)] = str(e)

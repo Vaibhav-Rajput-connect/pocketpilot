@@ -22,7 +22,7 @@ def setup_logging():
         structlog.processors.UnicodeDecoder(),
     ]
 
-    # In production, output JSON for CloudWatch.
+    # In production, output JSON for structured log aggregation.
     # In development, output colored console logs.
     if settings.environment == "prod":
         processors.append(structlog.processors.JSONRenderer())

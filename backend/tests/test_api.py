@@ -20,4 +20,4 @@ async def test_metrics(client: AsyncClient):
     """Test the Prometheus metrics endpoint."""
     response = await client.get("/metrics")
     assert response.status_code == 200
-    assert "process_cpu_seconds_total" in response.text
+    assert "http_request_duration_seconds" in response.text
